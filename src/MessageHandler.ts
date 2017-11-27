@@ -1,7 +1,8 @@
 import * as Discord from "discord.js";
 import * as Sqlite from "sqlite3";
-
 import * as math from "mathjs";
+
+import { BotId } from "./constants";
 
 export class MessageHandler
 {
@@ -60,7 +61,7 @@ export class MessageHandler
             this.sayRandom(message);
         }
 
-        const gm: Discord.GuildMember = message.guild.members.find(x => x.id === "380777013369241600");
+        const gm: Discord.GuildMember = message.guild.members.find(x => x.id === BotId);
         if (!gm)
         {
             return console.error("Couldn't find bot guild member for server \"" + message.guild.name + "\"");
@@ -208,7 +209,7 @@ export class MessageHandler
         return new Promise((resolve, reject) => 
         {
             // Is someone being a jackass and trying to save Prism messages as quotes?
-            if (message.author.id === "380777013369241600")
+            if (message.author.id === BotId)
             {
                 resolve(false);
             }
@@ -226,12 +227,10 @@ export class MessageHandler
                     if (!row)
                     {
                         resolve(true);
-                        //this.addQuote(message, fetchedMessage.id);
                     }
                     else
                     {
                         resolve(false);
-                        //message.channel.send("Message is already stored as a quote!");
                     }
                 });
             }
