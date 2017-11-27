@@ -1,18 +1,21 @@
 import * as Discord from "discord.js";
-import * as Sqlite from "sqlite3";
 import * as math from "mathjs";
 
 import { BotId } from "./constants";
+import { Database } from "./Database";
 
+/**
+ * 
+ */
 export class MessageHandler
 {
-    public db: Sqlite.Database;
+    public db: Database;
 
     /**
      * 
      * @param bot 
      */
-    constructor(db: Sqlite.Database)
+    constructor(db: Database)
     {
         this.db = db;
     }
@@ -61,17 +64,19 @@ export class MessageHandler
             this.sayRandom(message);
         }
 
-        const gm: Discord.GuildMember = message.guild.members.find(x => x.id === BotId);
-        if (!gm)
-        {
-            return console.error("Couldn't find bot guild member for server \"" + message.guild.name + "\"");
-        }
+        // Not sure how I feel about the auto deletes.
+        //
+        // const gm: Discord.GuildMember = message.guild.members.find(x => x.id === BotId);
+        // if (!gm)
+        // {
+        //     return console.error("Couldn't find bot guild member for server \"" + message.guild.name + "\"");
+        // }
 
-        if (gm.hasPermission(Discord.Permissions.FLAGS.MANAGE_MESSAGES))
-        {
-            message.delete()
-                .catch(console.error);
-        }
+        // if (gm.hasPermission(Discord.Permissions.FLAGS.MANAGE_MESSAGES))
+        // {
+        //     message.delete()
+        //         .catch(console.error);
+        // }
     }
 
     /**
@@ -141,42 +146,38 @@ export class MessageHandler
             params.push(authorId);
         }
 
-        this.db.all(query, params, (err, rows) =>
-        {
-            if (err)
+        this.db.all(query, params)
+            .then(rows =>
             {
-                return console.error(err.message);
-            }
-
-            if (rows.length === 0)
-            {
-                return message.channel.send("No quotes found for this server!");
-            }
-
-            const r: number = math.randomInt(rows.length);
-            const msgId: Discord.Snowflake = rows[r].MessageId;
-
-            message.channel.fetchMessage(msgId)
-            .then(msg =>
-            {
-                const embed: Discord.RichEmbed = new Discord.RichEmbed();
-                embed.setColor([0, 255, 0]);
-                embed.setDescription(msg.content)
-                embed.setAuthor(msg.guild.members.find(x => x.id === msg.author.id).displayName , msg.author.avatarURL);
-                embed.setTimestamp(msg.createdAt);
-
-                msg.attachments.forEach(v =>
+                if (rows.length === 0)
                 {
-                    embed.setImage(v.url);
-                });
+                    return message.channel.send("No quotes found for this server!");
+                }
     
-                message.channel.send(embed);
+                const r: number = math.randomInt(rows.length);
+                const msgId: Discord.Snowflake = rows[r].MessageId;
+    
+                message.channel.fetchMessage(msgId)
+                    .then(msg =>
+                    {
+                        const embed: Discord.RichEmbed = new Discord.RichEmbed();
+                        embed.setColor([0, 255, 0]);
+                        embed.setDescription(msg.content)
+                        embed.setAuthor(msg.guild.members.find(x => x.id === msg.author.id).displayName , msg.author.avatarURL);
+                        embed.setTimestamp(msg.createdAt);
+        
+                        msg.attachments.forEach(v =>
+                        {
+                            embed.setImage(v.url);
+                        });
+            
+                        message.channel.send(embed);
+                    });
             },
-            () => 
+            err =>
             {
-                message.channel.send("Error locating quote."); 
+                console.error(err.message);
             });
-        });
     }
 
     /**
@@ -189,15 +190,15 @@ export class MessageHandler
         const authorId: Discord.Snowflake = message.author.id;
         const guildId: Discord.Snowflake = message.guild.id;
 
-        this.db.run("INSERT INTO Quote(guildId, authorId, messageId) VALUES(?, ?, ?)", [guildId, authorId, msgId], err =>
-        {
-            if (err)
+        this.db.run("INSERT INTO Quote(guildId, authorId, messageId) VALUES(?, ?, ?)", [guildId, authorId, msgId])
+            .then(() =>
             {
-                return console.error(err.message);
-            }
-
-            message.channel.send("Quote added!");
-        });
+                message.channel.send("Quote added!");
+            },
+            err =>
+            {
+                console.error(err.message);
+            });
     }
 
     /**
@@ -216,23 +217,23 @@ export class MessageHandler
             else
             {
                 // No duplicate quotes of the same message.
-                this.db.get("SELECT MessageId FROM Quote WHERE MessageId = ?", [message.id], (err, row) => 
-                {
-                    if (err)
+                this.db.get("SELECT MessageId FROM Quote WHERE MessageId = ?", [message.id])
+                    .then(row =>
+                    {
+                        // Message wasn't found so add it as a quote.
+                        if (!row)
+                        {
+                            resolve(true);
+                        }
+                        else
+                        {
+                            resolve(false);
+                        }
+                    },
+                    err =>
                     {
                         reject(err.message);
-                    }
-
-                    // Message wasn't found so add it as a quote.
-                    if (!row)
-                    {
-                        resolve(true);
-                    }
-                    else
-                    {
-                        resolve(false);
-                    }
-                });
+                    });
             }
         });
     }
