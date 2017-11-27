@@ -1,0 +1,7 @@
+auth.json
+*-lock.json
+
+.vscode/
+build/
+node_modules/
+db/
