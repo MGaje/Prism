@@ -5,15 +5,16 @@ import { BotId } from "./constants";
 import { Database } from "./Database";
 
 /**
- * 
+ * Handles Discord messages from users.
  */
 export class MessageHandler
 {
     public db: Database;
 
     /**
-     * 
-     * @param bot 
+     * Constructor for MessageHandler.
+     * @constructor
+     * @param {Database} db Database context. 
      */
     constructor(db: Database)
     {
@@ -21,8 +22,8 @@ export class MessageHandler
     }
 
     /**
-     * 
-     * @param message 
+     * Handle incoming Discoord message.
+     * @param {Discord.Message} message discord.js message instance.
      */
     public handleMsg(message: Discord.Message)
     {
@@ -80,9 +81,9 @@ export class MessageHandler
     }
 
     /**
-     * 
-     * @param message 
-     * @param msgId 
+     * Save message as quote to the db.
+     * @param {Discord.Message} message discord.js message instance.
+     * @param {Discord.Snowflake} msgId Discord id of the message to save.
      */
     private saveQuote(message: Discord.Message, msgId: Discord.Snowflake)
     {
@@ -111,8 +112,9 @@ export class MessageHandler
     }
 
     /**
-     * 
-     * @param authorName 
+     * Get quote from db with (optional) specified author.
+     * @param {Discord.Message} message discord.js message instance.
+     * @param {string} author Author of quote.
      */
     private getQuote(message: Discord.Message, author: string)
     {
@@ -132,8 +134,9 @@ export class MessageHandler
     }
 
     /**
-     * 
-     * @param message 
+     * Say random message to the channel from incoming prompt.
+     * @param {Discord.Message} message discord.js message instance.
+     * @param {Discord.Snowflake} authorId Discord id of author.
      */
     private sayRandom(message: Discord.Message, authorId?: Discord.Snowflake)
     {
@@ -181,9 +184,9 @@ export class MessageHandler
     }
 
     /**
-     * 
-     * @param message 
-     * @param msgId 
+     * Add quote to database.
+     * @param {Discord.Message} message discord.js message instance.
+     * @param {Discord.Snowflake} msgId Discord id of the message to add.
      */
     private addQuote(message: Discord.Message, msgId: Discord.Snowflake)
     {
@@ -202,8 +205,9 @@ export class MessageHandler
     }
 
     /**
-     * 
-     * @param message 
+     * Make sure the specified message is valid to save to the db.
+     * @param {Discord.Message} message discord.js message instance.
+     * @returns {Promise<boolean>} A promise with valid quote state represented by boolean.
      */
     private validateQuote(message: Discord.Message): Promise<boolean>
     {
@@ -239,8 +243,8 @@ export class MessageHandler
     }
 
     /**
-     * 
-     * @param message 
+     * Utility method for validating and adding a quote to the db.
+     * @param {Discord.Message} message discord.js message instance.
      */
     private saveValidQuote(message: Discord.Message)
     {

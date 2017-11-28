@@ -7,7 +7,7 @@ import { MessageHandler } from "./MessageHandler";
 const auth = require("../auth.json");
 
 /**
- * 
+ * Main bot construct.
  */
 export class Prism
 {
@@ -17,7 +17,8 @@ export class Prism
     public stdin: NodeJS.Socket;
 
     /**
-     * 
+     * Default constuctor.
+     * @constructor
      */
     constructor()
     {
@@ -26,7 +27,7 @@ export class Prism
     }
 
     /**
-     * 
+     * Run the bot.
      */
     public run()
     {
@@ -48,7 +49,7 @@ export class Prism
     }
 
     /**
-     * 
+     * Sets up discord.js and console event listeners.
      */
     private setupListeners()
     {
