@@ -1,5 +1,6 @@
 import * as Discord from "discord.js";
 
+import { BotId } from "./constants";
 import { Database } from "./Database";
 import { QuotesModule } from "./modules/quotes";
 
@@ -26,9 +27,9 @@ export class MessageHandler
      */
     public handleMsg(message: Discord.Message)
     {
-        // If the message doesn't start with an "!", don't bother doing all the
+        // If the message doesn't start with an "!" or the message is from the bot, don't bother doing all the
         // other processing.
-        if (message.content.charAt(0) !== "!")
+        if (message.content.charAt(0) !== "!" || message.author.id === BotId)
         {
             return;
         }
@@ -49,7 +50,31 @@ export class MessageHandler
         const args: string[] = (argString) ? argString.split(",") : [];
 
         // Handle command logic.
-        if (cmd === "savequote" || cmd === "sq")
+        if (cmd === "help" || cmd === "h")
+        {
+            const helpCmd: string = (args[0]) ? args[0].trim() : undefined;
+            if (!helpCmd)
+            {
+                message.channel.send("Available commands: savequote, quote, random");
+            }
+            else if (helpCmd === "savequote" || helpCmd === "sq")
+            {
+                message.channel.send("!savequote [(messageId)] - savequote will save the preceding quote to the database. You can specify an optional message id in parentheses.");
+            }
+            else if (helpCmd === "quote" || helpCmd === "q")
+            {
+                message.channel.send("!quote [(author)] - quote will attempt to say a random quote. You can specify an optional author in parentheses. The provided author string can be either a nickname or a username.");
+            }
+            else if (helpCmd === "random" || helpCmd === "r")
+            {
+                message.channel.send("!random - random will ... say a random quote. Come on.")
+            }
+            else
+            {
+                message.channel.send("Unknown command.");
+            }
+        }
+        else if (cmd === "savequote" || cmd === "sq")
         {
             const msgId: string = (args[0]) ? args[0].trim() : undefined;
             this.quotes.saveQuote(message, msgId);
