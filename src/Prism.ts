@@ -31,8 +31,10 @@ export class Prism
      */
     public run()
     {
-        console.log("--Attempting to connect to db--");
-        this.db.connect(Path.join(__dirname, "..", "db", "quotes.db"))
+        const dbPath: string = Path.join(__dirname, "..", "db", "quotes.db")
+        console.log("--Attempting to connect to db: " + dbPath + "--");
+        
+        this.db.connect(dbPath)
             .then(() => 
             {
                 console.log("--Connected to db--");
