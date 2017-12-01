@@ -1,7 +1,8 @@
 import * as Discord from "discord.js";
 
 import { BotId } from "./constants";
-import { Database } from "./Database";
+
+import { Module } from "../core/module/Module";
 import { QuotesModule } from "../modules/quotes";
 
 /**
@@ -9,16 +10,16 @@ import { QuotesModule } from "../modules/quotes";
  */
 export class MessageHandler
 {
-    public quotes: QuotesModule;
+    public modules: Module[];
 
     /**
      * Constructor for MessageHandler.
      * @constructor
-     * @param {Database} db Database context. 
+     * @param {Module[]} modules All registered modules. 
      */
-    constructor(db: Database)
+    constructor(modules: Module[])
     {
-        this.quotes = new QuotesModule(db);
+        this.modules = modules;
     }
 
     /**
@@ -78,23 +79,20 @@ export class MessageHandler
                 message.channel.send("Unknown command.");
             }
         }
-        else if (cmd === "savequote" || cmd === "sq")
-        {
-            const msgId: string = (args[0]) ? args[0].trim() : undefined;
-            this.quotes.saveQuote(message, msgId);
-        }
-        else if (cmd === "quote" || cmd === "q")
-        {
-            const author: string = (args[0]) ? args[0].trim().toLowerCase() : undefined;
-            this.quotes.getQuote(message, author);
-        }
-        else if (cmd === "random" || cmd === "r")
-        {
-            this.quotes.sayRandom(message);
-        }
         else if (cmd === "power" || cmd === "p")
         {
             message.channel.send("https://giphy.com/gifs/power-highqualitygifs-unlimited-hokMyu1PAKfJK");
+        }
+        else
+        {
+            this.modules.some(x =>
+            {
+                if (x.supportsCommand(cmd, args))
+                {
+                    x.runCommand(message, cmd, args);
+                    return true;
+                }
+            });
         }
 
         // Not sure how I feel about the auto deletes.
