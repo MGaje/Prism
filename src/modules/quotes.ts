@@ -1,8 +1,8 @@
 import * as Discord from "discord.js";
 import * as math from "mathjs";
 
-import { BotId } from "../constants";
-import { Database } from "../Database";
+import { BotId } from "../core/constants";
+import { Database } from "../core/Database";
 
 /**
  * Module for quote management.

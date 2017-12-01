@@ -4,7 +4,7 @@ import * as Path from "path";
 import { Database } from "./Database";
 import { MessageHandler } from "./MessageHandler";
 
-const auth = require("../auth.json");
+const auth = require("../../auth.json");
 
 /**
  * Main bot construct.

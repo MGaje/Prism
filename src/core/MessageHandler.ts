@@ -2,7 +2,7 @@ import * as Discord from "discord.js";
 
 import { BotId } from "./constants";
 import { Database } from "./Database";
-import { QuotesModule } from "./modules/quotes";
+import { QuotesModule } from "../modules/quotes";
 
 /**
  * Handles Discord messages from users.
