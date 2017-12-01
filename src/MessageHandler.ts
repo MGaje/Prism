@@ -55,7 +55,7 @@ export class MessageHandler
             const helpCmd: string = (args[0]) ? args[0].trim() : undefined;
             if (!helpCmd)
             {
-                message.channel.send("Available commands: savequote, quote, random");
+                message.channel.send("Available commands: savequote, quote, random, power");
             }
             else if (helpCmd === "savequote" || helpCmd === "sq")
             {
@@ -68,6 +68,10 @@ export class MessageHandler
             else if (helpCmd === "random" || helpCmd === "r")
             {
                 message.channel.send("!random - random will ... say a random quote. Come on.")
+            }
+            else if (helpCmd === "power" || helpCmd === "p")
+            {
+                message.channel.send("<:lenny:309451824488906752>");
             }
             else
             {
@@ -87,6 +91,10 @@ export class MessageHandler
         else if (cmd === "random" || cmd === "r")
         {
             this.quotes.sayRandom(message);
+        }
+        else if (cmd === "power" || cmd === "p")
+        {
+            message.channel.send("https://giphy.com/gifs/power-highqualitygifs-unlimited-hokMyu1PAKfJK");
         }
 
         // Not sure how I feel about the auto deletes.
