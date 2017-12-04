@@ -11,6 +11,7 @@ import { QuotesModule } from "../modules/quotes";
 export class MessageHandler
 {
     public modules: Module[];
+    public supportedCommands: string[];
 
     /**
      * Constructor for MessageHandler.
@@ -20,6 +21,7 @@ export class MessageHandler
     constructor(modules: Module[])
     {
         this.modules = modules;
+        this.supportedCommands = [].concat(this.modules.map(x => x.getCommandNames()));
     }
 
     /**
@@ -36,7 +38,7 @@ export class MessageHandler
         }
 
         // Check to see if the message is a command to the bot.
-        const search: RegExp = new RegExp("!(\\w+)\\s*(\\([\\w\\s\\#\\,]+)?\\)?", "i");
+        const search: RegExp = new RegExp("!(\\w+)\\s*([\\w\\s\\#\\,]+)?", "i");
         if (!search.test(message.content))
         {
             return;
@@ -46,7 +48,7 @@ export class MessageHandler
         const result: RegExpExecArray = search.exec(message.content);
 
         const cmd: string = result[1];
-        const argString = result[3];
+        const argString = result[2];
 
         const args: string[] = (argString) ? argString.split(",") : [];
 
@@ -56,28 +58,26 @@ export class MessageHandler
             const helpCmd: string = (args[0]) ? args[0].trim() : undefined;
             if (!helpCmd)
             {
-                message.channel.send("Available commands: savequote, quote, random, power");
-            }
-            else if (helpCmd === "savequote" || helpCmd === "sq")
-            {
-                message.channel.send("!savequote [(messageId)] - savequote will save the preceding quote to the database. You can specify an optional message id in parentheses.");
-            }
-            else if (helpCmd === "quote" || helpCmd === "q")
-            {
-                message.channel.send("!quote [(author)] - quote will attempt to say a random quote. You can specify an optional author in parentheses. The provided author string can be either a nickname or a username.");
-            }
-            else if (helpCmd === "random" || helpCmd === "r")
-            {
-                message.channel.send("!random - random will ... say a random quote. Come on.")
-            }
-            else if (helpCmd === "power" || helpCmd === "p")
-            {
-                message.channel.send("<:lenny:309451824488906752>");
+                message.channel.send("Available commands: " + this.supportedCommands.join(", "));
             }
             else
             {
-                message.channel.send("Unknown command.");
+                const foundCommand: boolean = this.modules.some(x =>
+                    {
+                        if (x.supportsCommand(helpCmd))
+                        {
+                            message.channel.send(x.getHelp(helpCmd));
+                            return true;
+                        }
+                    });
+
+                if (!foundCommand)
+                {
+                    message.channel.send("Unknown command.");
+                }
             }
+
+            //message.channel.send("<:lenny:309451824488906752>");
         }
         else if (cmd === "power" || cmd === "p")
         {

@@ -59,13 +59,13 @@ export class QuotesModule extends BaseModule
     public setupCommands()
     {
         // Save quote.
-        const saveQuoteCommand: Command = new Command(["savequote", "sq"], [new Argument("messageId")]);
+        const saveQuoteCommand: Command = new Command(["savequote", "sq"], [new Argument("messageId")], "savequote will save the preceding quote to the database. You can specify an optional message id.");
 
         // Get quote.
-        const getQuoteCommand: Command = new Command(["quote", "getquote", "q"], [new Argument("author")]);
+        const getQuoteCommand: Command = new Command(["quote", "getquote", "q"], [new Argument("author")], "quote will attempt to say a random quote. You can specify an optional author. The provided author string can be either a nickname or a username.");
 
         // Say random quote.
-        const randomCommand: Command = new Command(["random", "r"], []);
+        const randomCommand: Command = new Command(["random", "r"], [], "random will ... say a random quote. Come on.");
 
         this.cmds.push(saveQuoteCommand, getQuoteCommand, randomCommand);
     }

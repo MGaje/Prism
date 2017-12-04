@@ -9,8 +9,9 @@ export interface Module
 {
     cmds: Command[];
 
-    supportsCommand(cmdName: string, args: any[]): boolean;
+    supportsCommand(cmdName: string, args?: any[]): boolean;
     runCommand(message: Discord.Message, cmdName: string, args: any[]);
-    getCommandNames(): string[];
+    getCommandNames(withAliases?: boolean): string[];
     setupCommands();
+    getHelp(cmdName: string): string;
 }

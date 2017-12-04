@@ -13,11 +13,13 @@ export class Command
      * @constructor
      * @param {string[]} nameAndAliases Array of name and aliases. First element is the assumed name of the command.
      * @param {Argument[]} argDefs Argument definition.
+     * @param {string} helpStr The information relayed during the help command.
      */
-    constructor(nameAndAliases: string[], argDefs: Argument[])
+    constructor(nameAndAliases: string[], argDefs: Argument[], helpStr?: string)
     {
         this.names = nameAndAliases;
         this.argDefs = argDefs;
+        this.help = helpStr;
     }
 
     /**
@@ -63,14 +65,19 @@ export class Command
         // Add arguments if there are any.
         if (this.argDefs.length > 0)
         {
-            stringBuilder.push("[(");
+            const requiredArgNames: string[] = this.argDefs.filter(x => x.required).map(x => x.name);
+            const optionalArgNames: string[] = this.argDefs.filter(x => !x.required).map(x => x.name);
 
-            this.argDefs.forEach(argDef => 
+            stringBuilder.push(requiredArgNames.join(", "));
+            if (optionalArgNames.length > 0)
             {
-                stringBuilder.push()
-            });
-
-            stringBuilder.push(")]");
+                stringBuilder.push(" [");
+                if (requiredArgNames.length > 0)
+                {
+                    stringBuilder.push(",");
+                }
+                stringBuilder.push(optionalArgNames.join(", "), "] - ");
+            }
         }
 
         stringBuilder.push(this.help);

@@ -29,7 +29,7 @@ export abstract class BaseModule implements Module
      * @param {any[]} args Arguments of the command.
      * @returns {boolean} Flag that indicates is the specified command is supported by this module.
      */
-    public supportsCommand(cmdName: string, args: any[]): boolean
+    public supportsCommand(cmdName: string, args?: any[]): boolean
     {
         const cmdFind: Command = this.getCommand(cmdName);
         if (!cmdFind)
@@ -37,14 +37,19 @@ export abstract class BaseModule implements Module
             return false;
         }
 
-        for (let i: number = 0; i < cmdFind.argDefs.length; ++i)
+        // todo: Think about this some more. I'm not entirely with this function also validating
+        // provided arguments. Should probably put this into its own function.
+        if (args)
         {
-            if (cmdFind.argDefs[i].required && !args[i])
+            for (let i: number = 0; i < cmdFind.argDefs.length; ++i)
             {
-                return false;
+                if (cmdFind.argDefs[i].required && !args[i])
+                {
+                    return false;
+                }
             }
         }
-
+        
         return true;
     }
 
@@ -59,9 +64,31 @@ export abstract class BaseModule implements Module
      * Get all command names for this module.
      * @returns {string[]} Array of supported command names.
      */
-    public getCommandNames(): string[]
+    public getCommandNames(withAliases?: boolean): string[]
     {
+        if (!withAliases)
+        {
+            return [].concat(this.cmds.map(x => x.names[0]));
+        }
+
         return [].concat(this.cmds.map(x => x.names));
+    }
+
+    /**
+     * Get help string for provided command.
+     * @param {string} cmdName The name of the command we are getting help for.
+     * @returns {string} The compiled help string for the provided command.
+     */
+    public getHelp(cmdName: string): string
+    {
+        const cmdFind: Command = this.getCommand(cmdName);
+        if (!cmdFind)
+        {
+            // How in the world did you g
+            throw new Error("Command not supported by this module.");
+        }
+
+        return cmdFind.getCompiledHelpString();
     }
 
     /**

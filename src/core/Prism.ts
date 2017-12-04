@@ -110,7 +110,7 @@ export class Prism
         let duplicateCmdNameFound: string = undefined;
 
         const quotesModule: Module = new QuotesModule(this.db);
-        const quotesModuleCmdNames: string[] = quotesModule.getCommandNames();
+        const quotesModuleCmdNames: string[] = quotesModule.getCommandNames(true);
 
         duplicateCmdNameFound = this.findCommandNameCollision(quotesModuleCmdNames, currentCommandNames);
         if (duplicateCmdNameFound)
