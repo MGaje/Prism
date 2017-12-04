@@ -36,7 +36,7 @@ export class MessageHandler
         }
 
         // Check to see if the message is a command to the bot.
-        const search: RegExp = new RegExp("!(\\w+)\\s*(\\(([\\w\\s\\#\\,]+)?\\))?", "i");
+        const search: RegExp = new RegExp("!(\\w+)\\s*(\\([\\w\\s\\#\\,]+)?\\)?", "i");
         if (!search.test(message.content))
         {
             return;
