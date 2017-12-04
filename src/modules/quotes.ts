@@ -1,7 +1,7 @@
 import * as Discord from "discord.js";
 import * as math from "mathjs";
 
-import { Module } from "../core/module/Module";
+import { BaseModule } from "../core/module/BaseModule";
 import { Command } from "../core/module/Command";
 import { Argument } from "../core/module/Argument";
 
@@ -11,46 +11,8 @@ import { Database } from "../core/Database";
 /**
  * Module for quote management.
  */
-export class QuotesModule implements Module
+export class QuotesModule extends BaseModule
 {
-    public cmds: Command[];
-    public db: Database;
-
-    /**
-     * @constructor
-     * @param {Database} db Database context.
-     */
-    constructor(db: Database)
-    {
-        this.db = db;
-        this.cmds = [];
-        this.setupCommands();
-    }
-
-    /**
-     * Determine whether or not this module supports the provided command.
-     * @param cmdName The command name.
-     * @param args Arguments of the command.
-     */
-    public supportsCommand(cmdName: string, args: any[]): boolean
-    {
-        const cmdFind: Command = this.getCommand(cmdName);
-        if (!cmdFind)
-        {
-            return false;
-        }
-
-        for (let i: number = 0; i < cmdFind.argDefs.length; ++i)
-        {
-            if (cmdFind.argDefs[i].required && !args[i])
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
     /**
      * Run provided command.
      * @param cmdName The command name.
@@ -92,21 +54,9 @@ export class QuotesModule implements Module
     }
 
     /**
-     * Get all command names for this module.
-     */
-    public getCommandNames(): string[]
-    {
-        return [].concat(this.cmds.map(x => x.names));
-    }
-
-    // --
-    // Utility methods.
-    // --
-
-    /**
      * Setup commands and add them to the command array.
      */
-    private setupCommands()
+    public setupCommands()
     {
         // Save quote.
         const saveQuoteCommand: Command = new Command(["savequote", "sq"], [new Argument("messageId")]);
@@ -120,14 +70,9 @@ export class QuotesModule implements Module
         this.cmds.push(saveQuoteCommand, getQuoteCommand, randomCommand);
     }
 
-    /**
-     * Get command by command name.
-     * @param cmdName The name of the command to get.
-     */
-    private getCommand(cmdName: string): Command
-    {
-        return this.cmds.find(x => x.names.some(y => y == cmdName));
-    }
+    // --
+    // Utility methods.
+    // --
 
     /**
      * Save message as quote to the db.
@@ -315,6 +260,4 @@ export class QuotesModule implements Module
                 console.error(err.message);
             });
     }
-
-    
 }

@@ -3,7 +3,7 @@ import * as Discord from "discord.js";
 import { Database } from "./Database";
 import { MessageHandler } from "./MessageHandler";
 
-import { Module } from "./module/Module";
+import { Module } from "./module/interfaces/Module";
 import { QuotesModule } from "../modules/Quotes";
 
 const auth = require("../../auth.json");

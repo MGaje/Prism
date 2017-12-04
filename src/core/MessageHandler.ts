@@ -2,7 +2,7 @@ import * as Discord from "discord.js";
 
 import { BotId } from "./constants";
 
-import { Module } from "../core/module/Module";
+import { Module } from "../core/module/interfaces/Module";
 import { QuotesModule } from "../modules/quotes";
 
 /**
