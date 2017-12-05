@@ -10,45 +10,26 @@ import { Argument } from "../core/module/Argument";
 export class SillyModule extends BaseModule
 {
     /**
-     * Run provided command.
-     * @param cmdName The command name.
-     * @param args Arguments of the command.
-     */
-    public runCommand(message: Discord.Message, cmdName: string, args: any[])
-    {
-        // Get command instance in case an alias was provided.
-        const cmd: Command = this.getCommand(cmdName);
-        if (!cmd)
-        {
-            // Yikes. How did this happen?
-            throw new Error("Provided command is not supported in this module");
-        }
-
-        // Use main command name to determine which command to run.
-        switch (cmd.getName())
-        {
-            case "power":
-                this.unlimitedPower(message);
-                break;
-
-            default:
-                break;
-        }
-    }
-
-    /**
      * Setup commands and add them to the command array.
      */
     public setupCommands()
     {
-        const powerCommand: Command = new Command(["power"], [], "U N L I M I T E D P O W E R");
+        const powerCommand: Command = new Command(
+            ["power"], 
+            [], 
+            "U N L I M I T E D P O W E R",
+            this.unlimitedPower.bind(this)
+        );
+
         this.cmds.push(powerCommand);
     }
-
-    // --
-    // Utility methods.
-    // --
-    public unlimitedPower(message: Discord.Message)
+    
+    /**
+     * Did you ever hear the tragedy of Darth Plagueis the Wise?
+     * @param {Discord.Message} message The discord.js message instance.
+     * @param {any[]} args Arguments for the command.
+     */
+    public unlimitedPower(message: Discord.Message, args?: any[])
     {
         message.channel.send("https://giphy.com/gifs/power-highqualitygifs-unlimited-hokMyu1PAKfJK");
     }

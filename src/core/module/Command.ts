@@ -1,4 +1,8 @@
+import * as Discord from "discord.js";
+
 import { Argument } from "./Argument";
+
+export type CommandAction = (message: Discord.Message, args?: any[]) => void;
 
 /**
  * Class that represents a bot command.
@@ -8,6 +12,7 @@ export class Command
     public names: string[];
     public argDefs: Argument[];
     public help: string;
+    public action: CommandAction;
 
     /**
      * @constructor
@@ -15,11 +20,12 @@ export class Command
      * @param {Argument[]} argDefs Argument definition.
      * @param {string} helpStr The information relayed during the help command.
      */
-    constructor(nameAndAliases: string[], argDefs: Argument[], helpStr?: string)
+    constructor(nameAndAliases: string[], argDefs: Argument[], helpStr?: string, action?: CommandAction)
     {
         this.names = nameAndAliases;
         this.argDefs = argDefs;
         this.help = helpStr;
+        this.action = action;
     }
 
     /**

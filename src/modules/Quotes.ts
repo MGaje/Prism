@@ -14,58 +14,33 @@ import { Database } from "../core/Database";
 export class QuotesModule extends BaseModule
 {
     /**
-     * Run provided command.
-     * @param cmdName The command name.
-     * @param args Arguments of the command.
-     */
-    public runCommand(message: Discord.Message, cmdName: string, args: any[])
-    {
-        // Get command instance in case an alias was provided.
-        const cmd: Command = this.getCommand(cmdName);
-        if (!cmd)
-        {
-            // Yikes. How did this happen?
-            throw new Error("Provided command is not supported in this module");
-        }
-
-        // Use main command name to determine which command to run.
-        switch (cmd.getName())
-        {
-            case "savequote":
-                const msgId: string = (args[0]) ? args[0].trim() : undefined;
-                this.saveQuote(message, msgId);
-
-                break;
-
-            case "quote":
-                const author: string = (args[0]) ? args[0].trim().toLowerCase() : undefined;
-                this.getQuote(message, author);
-
-                break;
-
-            case "random":
-                this.sayRandom(message);
-
-                break;
-
-            default:
-                break;
-        }
-    }
-
-    /**
      * Setup commands and add them to the command array.
      */
     public setupCommands()
     {
         // Save quote.
-        const saveQuoteCommand: Command = new Command(["savequote", "sq"], [new Argument("messageId")], "savequote will save the preceding quote to the database. You can specify an optional message id.");
+        const saveQuoteCommand: Command = new Command(
+            ["savequote", "sq"], 
+            [new Argument("messageId")], 
+            "savequote will save the preceding quote to the database. You can specify an optional message id.",
+            this.saveQuote.bind(this)
+        );
 
         // Get quote.
-        const getQuoteCommand: Command = new Command(["quote", "getquote", "q"], [new Argument("author")], "quote will attempt to say a random quote. You can specify an optional author. The provided author string can be either a nickname or a username.");
+        const getQuoteCommand: Command = new Command(
+            ["quote", "getquote", "q"], 
+            [new Argument("author")], 
+            "quote will attempt to say a random quote. You can specify an optional author. The provided author string can be either a nickname or a username.",
+            this.getQuote.bind(this)
+        );
 
         // Say random quote.
-        const randomCommand: Command = new Command(["random", "r"], [], "random will ... say a random quote. Come on.");
+        const randomCommand: Command = new Command(
+            ["random", "r"], 
+            [], 
+            "random will ... say a random quote. Come on.",
+            this.sayRandom.bind(this)
+        );
 
         this.cmds.push(saveQuoteCommand, getQuoteCommand, randomCommand);
     }
@@ -77,10 +52,11 @@ export class QuotesModule extends BaseModule
     /**
      * Save message as quote to the db.
      * @param {Discord.Message} message discord.js message instance.
-     * @param {Discord.Snowflake} msgId Discord id of the message to save.
+     * @param {any[]} args Arguments for the command.
      */
-    private saveQuote(message: Discord.Message, msgId: Discord.Snowflake)
+    private saveQuote(message: Discord.Message, args?: any[])
     {
+        const msgId: string = (args[0]) ? args[0].trim() : undefined;
         if (!msgId)
         {
             message.channel.fetchMessages({ before: message.id, limit: 1 })
@@ -108,10 +84,12 @@ export class QuotesModule extends BaseModule
     /**
      * Get quote from db with (optional) specified author.
      * @param {Discord.Message} message discord.js message instance.
-     * @param {string} author Author of quote.
+     * @param {any[]} args Arguments for the command.
      */
-    public getQuote(message: Discord.Message, author: string)
+    public getQuote(message: Discord.Message, args?: any[])
     {
+        const author: string = (args[0]) ? args[0].trim().toLowerCase() : undefined;
+
         if (!author)
         {
             // At this point it's just an alias for random.
@@ -125,18 +103,20 @@ export class QuotesModule extends BaseModule
             return message.channel.send("No quote found!");
         }
 
-        this.sayRandom(message, gm.id);
+        this.sayRandom(message, [gm.id]);
     }
 
     /**
      * Say random message to the channel from incoming prompt.
      * @param {Discord.Message} message discord.js message instance.
-     * @param {Discord.Snowflake} authorId Discord id of author.
+     * @param {any[]} args Arguments for the command.
      */
-    public sayRandom(message: Discord.Message, authorId?: Discord.Snowflake)
+    public sayRandom(message: Discord.Message, args?: any[])
     {
         let query: string = "SELECT MessageId FROM Quote WHERE GuildId = ?";
         let params: any[] = [message.guild.id];
+
+        const authorId: Discord.Snowflake = (args[0]) ? args[0].trim() : undefined;
 
         if (authorId)
         {

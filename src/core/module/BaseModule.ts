@@ -55,10 +55,22 @@ export abstract class BaseModule implements Module
 
     /**
      * Run provided command.
-     * @param {string} cmdName The command name.
-     * @param {any[]} args Arguments of the command.
+     * @param message The discord.js message instance.
+     * @param cmdName The command name.
+     * @param args Arguments of the command.
      */
-    public abstract runCommand(message: Discord.Message, cmdName: string, args: any[]);
+    public runCommand(message: Discord.Message, cmdName: string, args: any[])
+    {
+        // Get command instance in case an alias was provided.
+        const cmd: Command = this.getCommand(cmdName);
+        if (!cmd)
+        {
+            // Yikes. How did this happen?
+            throw new Error("Provided command is not supported in this module");
+        }
+
+        cmd.action(message, args);
+    }
 
     /**
      * Get all command names for this module.
