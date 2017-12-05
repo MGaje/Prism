@@ -76,11 +76,11 @@ export class Command
                 {
                     stringBuilder.push(",");
                 }
-                stringBuilder.push(optionalArgNames.join(", "), "] - ");
+                stringBuilder.push(optionalArgNames.join(", "), "]");
             }
         }
 
-        stringBuilder.push(this.help);
+        stringBuilder.push(" - ", this.help);
 
         return stringBuilder.join("");
     }

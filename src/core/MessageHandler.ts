@@ -21,7 +21,7 @@ export class MessageHandler
     constructor(modules: Module[])
     {
         this.modules = modules;
-        this.supportedCommands = [].concat(this.modules.map(x => x.getCommandNames()));
+        this.supportedCommands = [].concat(...this.modules.map(x => x.getCommandNames()));
     }
 
     /**
@@ -76,12 +76,6 @@ export class MessageHandler
                     message.channel.send("Unknown command.");
                 }
             }
-
-            //message.channel.send("<:lenny:309451824488906752>");
-        }
-        else if (cmd === "power" || cmd === "p")
-        {
-            message.channel.send("https://giphy.com/gifs/power-highqualitygifs-unlimited-hokMyu1PAKfJK");
         }
         else
         {

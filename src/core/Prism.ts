@@ -5,6 +5,7 @@ import { MessageHandler } from "./MessageHandler";
 
 import { Module } from "./module/interfaces/Module";
 import { QuotesModule } from "../modules/Quotes";
+import { SillyModule } from "../modules/Silly";
 
 const auth = require("../../auth.json");
 
@@ -106,31 +107,55 @@ export class Prism
     {
         // Some of this logic will probably separated out into its own function (ie: validateModule)
         // but there's only one actual module right now.
-        const currentCommandNames: string[] = [];
-        let duplicateCmdNameFound: string = undefined;
+        let currentCommandNames: string[] = [];
 
+        // Quotes module.
         const quotesModule: Module = new QuotesModule(this.db);
-        const quotesModuleCmdNames: string[] = quotesModule.getCommandNames(true);
+        const quotesModuleCmdNames: string[] = [].concat(...quotesModule.getCommandNames(true));
 
-        duplicateCmdNameFound = this.findCommandNameCollision(quotesModuleCmdNames, currentCommandNames);
-        if (duplicateCmdNameFound)
+        if (!this.validateModule(quotesModuleCmdNames, currentCommandNames))
         {
-            throw new Error("Invalid module: command name collision for: " + duplicateCmdNameFound);
+            throw new Error("Invalid module \"QuotesModule\": command name collision found.");
         }
 
         this.modules.push(quotesModule);
-        currentCommandNames.concat(quotesModuleCmdNames);
+        currentCommandNames = currentCommandNames.concat(quotesModuleCmdNames);
 
-        // This is where we would add another module with the updated currentCommandNames array.
+        // Silly module.
+        const sillyModule: Module = new SillyModule(this.db);
+        const sillyModuleCmdNames: string[] = [].concat(...sillyModule.getCommandNames(true));
+
+        if (!this.validateModule(sillyModuleCmdNames, currentCommandNames))
+        {
+            throw new Error("Invalid module \"SillyModule\": command name collision found.");
+        }
+
+        this.modules.push(sillyModule);
+        currentCommandNames = currentCommandNames.concat(sillyModuleCmdNames);
+    }
+
+    /**
+     * Validate a module.
+     * @param moduleCmdNames The module-to-be-added's command names.
+     * @param currentCmdNames The current listing of supported commands.
+     * @returns {boolean} Flag indicating if the module is valid.
+     */
+    private validateModule(moduleCmdNames: string[], currentCmdNames: string[]): boolean
+    {
+        // todo: Keep this method in mind. Right now it just returns the outcome of the command name collision method.
+        // In the future, modules might have other conditions to be considered valid.
+        const duplicateCmdNameFound: boolean = this.findCommandNameCollision(moduleCmdNames, currentCmdNames);
+        return !duplicateCmdNameFound;
     }
 
     /**
      * Finds command name collisions in the provided arrays.
      * @param {string[]} moduleCmdNames The module-to-be-added's command names.
      * @param {string[]} currentCmdNames The current listing of supported commands.
+     * @returns {boolean} Flag indicating if a collision was found.
      */
-    private findCommandNameCollision(moduleCmdNames: string[], currentCmdNames: string[]): string
+    private findCommandNameCollision(moduleCmdNames: string[], currentCmdNames: string[]): boolean
     {
-        return currentCmdNames.find(x => moduleCmdNames.some(y => y === x));
+        return currentCmdNames.some(x => moduleCmdNames.some(y => y === x));
     }
 }
