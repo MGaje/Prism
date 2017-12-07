@@ -116,7 +116,12 @@ export class QuotesModule extends BaseModule
         let query: string = "SELECT MessageId FROM Quote WHERE GuildId = ?";
         let params: any[] = [message.guild.id];
 
-        const authorId: Discord.Snowflake = (args[0]) ? args[0].trim() : undefined;
+        let authorId: Discord.Snowflake = undefined;
+        
+        if (args)
+        {
+            authorId = (args[0]) ? args[0].trim() : undefined;
+        }
 
         if (authorId)
         {

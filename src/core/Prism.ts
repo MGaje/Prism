@@ -1,5 +1,6 @@
 import * as Discord from "discord.js";
 
+import { Config } from "./Config";
 import { Database } from "./Database";
 import { MessageHandler } from "./MessageHandler";
 
@@ -7,14 +8,13 @@ import { Module } from "./module/interfaces/Module";
 import { QuotesModule } from "../modules/Quotes";
 import { SillyModule } from "../modules/Silly";
 
-const auth = require("../../auth.json");
-
 /**
  * Main bot construct.
  */
 export class Prism
 {
     public modules: Module[];
+    public config: Config;
     public botClient: Discord.Client;
     public db: Database;
     public mh: MessageHandler;
@@ -27,6 +27,7 @@ export class Prism
     constructor()
     {
         this.modules = [];
+        this.config = require("../../config.json");
         this.botClient = new Discord.Client();
         this.db = new Database();
     }
@@ -53,7 +54,7 @@ export class Prism
                 this.mh = new MessageHandler(this.modules);
 
                 console.log("--Atempting to login--");
-                this.botClient.login(auth.token); 
+                this.botClient.login(this.config.botToken); 
             },
             err =>
             {
