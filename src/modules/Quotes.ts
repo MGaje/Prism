@@ -174,7 +174,7 @@ export class QuotesModule extends BaseModule
             {
                 if (isValid)
                 {
-                    this.addQuoteToDb(message, message.id);
+                    this.addQuoteToDb(message);
                 }
                 else
                 {
@@ -228,14 +228,15 @@ export class QuotesModule extends BaseModule
     /**
      * Add quote to database.
      * @param {Discord.Message} message discord.js message instance.
-     * @param {Discord.Snowflake} msgId Discord id of the message to add.
      */
-    private addQuoteToDb(message: Discord.Message, msgId: Discord.Snowflake)
+    private addQuoteToDb(message: Discord.Message)
     {
         const authorId: Discord.Snowflake = message.author.id;
         const guildId: Discord.Snowflake = message.guild.id;
+        const channelId: Discord.Snowflake = message.channel.id;
+        const msgId: Discord.Snowflake = message.id;
 
-        this.db.run("INSERT INTO Quote(guildId, authorId, messageId) VALUES(?, ?, ?)", [guildId, authorId, msgId])
+        this.db.run("INSERT INTO Quote(guildId, authorId, channelId, messageId) VALUES(?, ?, ?, ?)", [guildId, authorId, channelId, msgId])
             .then(() =>
             {
                 message.channel.send("Quote added!");
