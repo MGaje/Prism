@@ -138,24 +138,27 @@ export class QuotesModule extends BaseModule
                 }
     
                 const r: number = math.randomInt(rows.length);
-                const msgId: Discord.Snowflake = rows[r].MessageId;
+
+                // todo: Create and use model here.
+                const quote: any = rows[r];
+                const msgId: Discord.Snowflake = quote.MessageId;
     
-                message.channel.fetchMessage(msgId)
-                    .then(msg =>
-                    {
-                        const embed: Discord.RichEmbed = new Discord.RichEmbed();
-                        embed.setColor([0, 255, 0]);
-                        embed.setDescription(msg.content)
-                        embed.setAuthor(msg.guild.members.find(x => x.id === msg.author.id).displayName , msg.author.avatarURL);
-                        embed.setTimestamp(msg.createdAt);
-        
-                        msg.attachments.forEach(v =>
-                        {
-                            embed.setImage(v.url);
-                        });
-            
-                        message.channel.send(embed);
-                    });
+                return message.channel.fetchMessage(msgId);
+            })
+            .then((msg: Discord.Message) =>
+            {
+                const embed: Discord.RichEmbed = new Discord.RichEmbed();
+                embed.setColor([0, 255, 0]);
+                embed.setDescription(msg.content)
+                embed.setAuthor(msg.guild.members.find(x => x.id === msg.author.id).displayName, msg.author.avatarURL);
+                embed.setTimestamp(msg.createdAt);
+
+                msg.attachments.forEach(v =>
+                {
+                    embed.setImage(v.url);
+                });
+    
+                message.channel.send(embed);
             },
             err =>
             {
