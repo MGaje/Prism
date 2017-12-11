@@ -74,15 +74,14 @@ export class Command
             const requiredArgNames: string[] = this.argDefs.filter(x => x.required).map(x => x.name);
             const optionalArgNames: string[] = this.argDefs.filter(x => !x.required).map(x => x.name);
 
-            stringBuilder.push(requiredArgNames.join(", "));
+            if (requiredArgNames.length > 0)
+            {
+                stringBuilder.push(" _", requiredArgNames.join(", "), "_");
+            }
+            
             if (optionalArgNames.length > 0)
             {
-                stringBuilder.push(" [");
-                if (requiredArgNames.length > 0)
-                {
-                    stringBuilder.push(",");
-                }
-                stringBuilder.push(optionalArgNames.join(", "), "]");
+                stringBuilder.push(" _[", optionalArgNames.join(", "), "]_");
             }
         }
 

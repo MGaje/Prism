@@ -2,6 +2,7 @@ import * as Discord from "discord.js";
 
 import { Module } from "./interfaces/Module";
 import { Database } from "../Database";
+import { DataStore } from "../DataStore";
 import { Command } from "./Command";
 
 /**
@@ -11,14 +12,16 @@ export abstract class BaseModule implements Module
 {
     public cmds: Command[];
     public db: Database;
+    public ds: DataStore;
 
     /**
      * @constructor
      * @param {Database} db Database context.
      */
-    constructor(db: Database)
+    constructor(db: Database, dataStore: DataStore)
     {
         this.db = db;
+        this.ds = dataStore;
         this.cmds = [];
         this.setupCommands();
     }

@@ -120,7 +120,7 @@ export class MessageHandler
      */
     private isIgnoredUser(authorId: Discord.Snowflake): boolean
     {
-        const ignoredUsersList: Discord.Snowflake[] = this.ds.get(DataStoreKeys.IgnoreUsersList);
+        const ignoredUsersList: Discord.Snowflake[] = this.ds.get(DataStoreKeys.IgnoredUsersList);
         return ignoredUsersList.some(x => x === authorId);
     }
 }

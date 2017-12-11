@@ -9,6 +9,7 @@ import { DataStore } from "./DataStore";
 import { Module } from "./module/interfaces/Module";
 import { QuotesModule } from "../modules/Quotes";
 import { SillyModule } from "../modules/Silly";
+import { ManagementModule } from "../modules/Management";
 
 /**
  * Main bot construct.
@@ -116,19 +117,19 @@ export class Prism
      */
     private cacheData(): Promise<void>
     {
-        return this.loadIgnoreUserData();
+        return this.loadIgnoredUserData();
     }
 
     /**
      * Load the data from the IgnoreUser table in the db.
      */
-    private loadIgnoreUserData(): Promise<void>
+    private loadIgnoredUserData(): Promise<void>
     {
-        return this.db.all("SELECT UserId FROM IgnoreUser", [])
+        return this.db.all("SELECT UserId FROM IgnoredUser", [])
             .then(rows => 
             {
                 const userIds: Discord.Snowflake[] = rows.map(x => x.UserId);
-                this.ds.set(DataStoreKeys.IgnoreUsersList, userIds);
+                this.ds.set(DataStoreKeys.IgnoredUsersList, userIds);
             });
     }
 
@@ -142,7 +143,7 @@ export class Prism
         let currentCommandNames: string[] = [];
 
         // Quotes module.
-        const quotesModule: Module = new QuotesModule(this.db);
+        const quotesModule: Module = new QuotesModule(this.db, this.ds);
         const quotesModuleCmdNames: string[] = [].concat(...quotesModule.getCommandNames(true));
 
         if (!this.validateModule(quotesModuleCmdNames, currentCommandNames))
@@ -154,7 +155,7 @@ export class Prism
         currentCommandNames = currentCommandNames.concat(quotesModuleCmdNames);
 
         // Silly module.
-        const sillyModule: Module = new SillyModule(this.db);
+        const sillyModule: Module = new SillyModule(this.db, this.ds);
         const sillyModuleCmdNames: string[] = [].concat(...sillyModule.getCommandNames(true));
 
         if (!this.validateModule(sillyModuleCmdNames, currentCommandNames))
@@ -164,6 +165,18 @@ export class Prism
 
         this.modules.push(sillyModule);
         currentCommandNames = currentCommandNames.concat(sillyModuleCmdNames);
+
+        // Management module.
+        const managementModule: Module = new ManagementModule(this.db, this.ds);
+        const managementModuleCmdNames: string[] = [].concat(...managementModule.getCommandNames(true));
+
+        if (!this.validateModule(managementModuleCmdNames, currentCommandNames))
+        {
+            throw new Error("Invalid module \"ManagementModule\": command name collision found.");
+        }
+
+        this.modules.push(managementModule);
+        currentCommandNames = currentCommandNames.concat(managementModuleCmdNames);
     }
 
     /**
