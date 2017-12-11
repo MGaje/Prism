@@ -1,6 +1,6 @@
 import * as Discord from "discord.js";
 
-import { BotId } from "./constants";
+import { BotId, DataStoreKeys } from "./constants";
 import { DataStore } from "./DataStore";
 
 import { Module } from "../core/module/interfaces/Module";
@@ -33,6 +33,12 @@ export class MessageHandler
      */
     public handleMsg(message: Discord.Message)
     {
+        // Check if ignored user.
+        if (this.isIgnoredUser(message.author.id))
+        {
+            return;
+        }
+
         // If the message doesn't start with an "!" or the message is from the bot, don't bother doing all the
         // other processing.
         if (message.content.charAt(0) !== "!" || message.author.id === BotId)
@@ -105,5 +111,16 @@ export class MessageHandler
         //     message.delete()
         //         .catch(console.error);
         // }
-    }    
+    }
+    
+    /**
+     * Determine if the specified user should be ignored.
+     * @param {Discord.Snowflake} authorId The id of the author being tested.
+     * @returns {boolean} Flag indicating whether or not the specified user is an ignored user or not.
+     */
+    private isIgnoredUser(authorId: Discord.Snowflake): boolean
+    {
+        const ignoredUsersList: Discord.Snowflake[] = this.ds.get(DataStoreKeys.IgnoreUsersList);
+        return ignoredUsersList.some(x => x === authorId);
+    }
 }
