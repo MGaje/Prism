@@ -1,8 +1,10 @@
 import * as Discord from "discord.js";
 
+import { DataStoreKeys } from "./constants";
 import { Config } from "./Config";
 import { Database } from "./Database";
 import { MessageHandler } from "./MessageHandler";
+import { DataStore } from "./DataStore";
 
 import { Module } from "./module/interfaces/Module";
 import { QuotesModule } from "../modules/Quotes";
@@ -17,6 +19,7 @@ export class Prism
     public config: Config;
     public botClient: Discord.Client;
     public db: Database;
+    public ds: DataStore;
     public mh: MessageHandler;
     public stdin: NodeJS.Socket;
 
@@ -30,6 +33,7 @@ export class Prism
         this.config = require("../../config.json");
         this.botClient = new Discord.Client();
         this.db = new Database();
+        this.ds = new DataStore();
     }
 
     /**
@@ -51,10 +55,16 @@ export class Prism
                 console.log("--Registering modules--");
                 this.registerModules();
 
-                this.mh = new MessageHandler(this.modules);
-
-                console.log("--Atempting to login--");
-                this.botClient.login(this.config.botToken); 
+                console.log("--Cache data--");
+                this.cacheData()
+                    .then(() => 
+                    {
+                        console.log("--Creating Message Handler--");
+                        this.mh = new MessageHandler(this.modules, this.ds);
+        
+                        console.log("--Atempting to login--");
+                        this.botClient.login(this.config.botToken); 
+                    });
             },
             err =>
             {
@@ -99,6 +109,27 @@ export class Prism
                 process.exit();
             }
         });
+    }
+
+    /**
+     * Cache all necessary data (into the data store).
+     */
+    private cacheData(): Promise<void>
+    {
+        return this.loadIgnoreUserData();
+    }
+
+    /**
+     * Load the data from the IgnoreUser table in the db.
+     */
+    private loadIgnoreUserData(): Promise<void>
+    {
+        return this.db.all("SELECT UserId FROM IgnoreUser", [])
+            .then(rows => 
+            {
+                const userIds: Discord.Snowflake[] = rows.map(x => x.UserId);
+                this.ds.set(DataStoreKeys.IgnoreUsersList, userIds);
+            });
     }
 
     /**

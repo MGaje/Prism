@@ -1,6 +1,7 @@
 import * as Discord from "discord.js";
 
 import { BotId } from "./constants";
+import { DataStore } from "./DataStore";
 
 import { Module } from "../core/module/interfaces/Module";
 import { QuotesModule } from "../modules/quotes";
@@ -12,16 +13,18 @@ export class MessageHandler
 {
     public modules: Module[];
     public supportedCommands: string[];
+    public ds: DataStore;
 
     /**
      * Constructor for MessageHandler.
      * @constructor
      * @param {Module[]} modules All registered modules. 
      */
-    constructor(modules: Module[])
+    constructor(modules: Module[], dataStore: DataStore)
     {
         this.modules = modules;
         this.supportedCommands = [].concat(...this.modules.map(x => x.getCommandNames()));
+        this.ds = dataStore;
     }
 
     /**
