@@ -138,59 +138,36 @@ export class Prism
      */
     private registerModules()
     {
-        // Some of this logic will probably separated out into its own function (ie: validateModule)
-        // but there's only one actual module right now.
-        let currentCommandNames: string[] = [];
+        const modulesToValidate: Module[] = [
+            new QuotesModule(this.db, this.ds), 
+            new SillyModule(this.db, this.ds), 
+            new ManagementModule(this.db, this.ds, [PrismCommander])
+        ];
 
-        // Quotes module.
-        const quotesModule: Module = new QuotesModule(this.db, this.ds);
-        const quotesModuleCmdNames: string[] = [].concat(...quotesModule.getCommandNames(true));
+        modulesToValidate.forEach(x => {
+            if (!this.validateModule(x))
+            {
+                throw new Error("Invalid module.");
+            }
 
-        if (!this.validateModule(quotesModuleCmdNames, currentCommandNames))
-        {
-            throw new Error("Invalid module \"QuotesModule\": command name collision found.");
-        }
-
-        this.modules.push(quotesModule);
-        currentCommandNames = currentCommandNames.concat(quotesModuleCmdNames);
-
-        // Silly module.
-        const sillyModule: Module = new SillyModule(this.db, this.ds);
-        const sillyModuleCmdNames: string[] = [].concat(...sillyModule.getCommandNames(true));
-
-        if (!this.validateModule(sillyModuleCmdNames, currentCommandNames))
-        {
-            throw new Error("Invalid module \"SillyModule\": command name collision found.");
-        }
-
-        this.modules.push(sillyModule);
-        currentCommandNames = currentCommandNames.concat(sillyModuleCmdNames);
-
-        // Management module.
-        const managementModule: Module = new ManagementModule(this.db, this.ds, [PrismCommander]);
-        const managementModuleCmdNames: string[] = [].concat(...managementModule.getCommandNames(true));
-
-        if (!this.validateModule(managementModuleCmdNames, currentCommandNames))
-        {
-            throw new Error("Invalid module \"ManagementModule\": command name collision found.");
-        }
-
-        this.modules.push(managementModule);
-        currentCommandNames = currentCommandNames.concat(managementModuleCmdNames);
+            this.modules.push(x);
+        });
     }
 
     /**
      * Validate a module.
-     * @param moduleCmdNames The module-to-be-added's command names.
-     * @param currentCmdNames The current listing of supported commands.
+     * @param module The module to validate.
      * @returns {boolean} Flag indicating if the module is valid.
      */
-    private validateModule(moduleCmdNames: string[], currentCmdNames: string[]): boolean
+    private validateModule(module: Module): boolean
     {
         // todo: Keep this method in mind. Right now it just returns the outcome of the command name collision method.
         // In the future, modules might have other conditions to be considered valid.
-        const duplicateCmdNameFound: boolean = this.findCommandNameCollision(moduleCmdNames, currentCmdNames);
-        return !duplicateCmdNameFound;
+        const supportedCommands: string[] = [].concat(...this.modules.map(x => x.getCommandNames(true)));
+        const moduleCommands: string[] = module.getCommandNames(true);
+        const commandNameCollisionFound: boolean = this.findCommandNameCollision(moduleCommands, supportedCommands);
+
+        return !commandNameCollisionFound;
     }
 
     /**
