@@ -12,7 +12,9 @@ export class Command
     public names: string[];
     public argDefs: Argument[];
     public help: string;
-    public action: CommandAction;
+    public requiredRoles: string[];
+
+    private _action: CommandAction;
 
     /**
      * @constructor
@@ -20,12 +22,13 @@ export class Command
      * @param {Argument[]} argDefs Argument definition.
      * @param {string} helpStr The information relayed during the help command.
      */
-    constructor(nameAndAliases: string[], argDefs: Argument[], helpStr?: string, action?: CommandAction)
+    constructor(nameAndAliases: string[], argDefs: Argument[], requiredRoles?: string[], helpStr?: string, action?: CommandAction)
     {
         this.names = nameAndAliases;
         this.argDefs = argDefs;
         this.help = helpStr;
-        this.action = action;
+        this.requiredRoles = requiredRoles || [];
+        this._action = action;
     }
 
     /**
@@ -54,6 +57,28 @@ export class Command
         }
 
         return this.names.slice(1);
+    }
+
+    /**
+     * Perform action of the command.
+     * @param message The discord.js message instance.
+     * @param args Arguments of the command.
+     */
+    public doAction(message: Discord.Message, args?: any[])
+    {
+        // If the command requires no special roles, just perform the action.
+        if (this.requiredRoles.length === 0)
+        {
+            return this._action(message, args);
+        }
+
+        // The command requires special roles. Check to make sure the user has the specified roles.
+        const guildMember: Discord.GuildMember = message.guild.members.find(x => x.id === message.author.id);
+        const canPerformAction: boolean = this.requiredRoles.every(x => guildMember.roles.some(y => y.name === x));
+        if (canPerformAction)
+        {
+            this._action(message, args);
+        }
     }
 
     /**

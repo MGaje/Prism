@@ -22,6 +22,7 @@ export class QuotesModule extends BaseModule
         const saveQuoteCommand: Command = new Command(
             ["savequote", "sq"], 
             [new Argument("messageId")], 
+            null,
             "savequote will save the preceding quote to the database. You can specify an optional message id.",
             this.saveQuote.bind(this)
         );
@@ -29,7 +30,8 @@ export class QuotesModule extends BaseModule
         // Get quote.
         const getQuoteCommand: Command = new Command(
             ["quote", "getquote", "q"], 
-            [new Argument("author")], 
+            [new Argument("author")],
+            null, 
             "quote will attempt to say a random quote. You can specify an optional author. The provided author string can be either a nickname or a username.",
             this.getQuote.bind(this)
         );
@@ -38,6 +40,7 @@ export class QuotesModule extends BaseModule
         const randomCommand: Command = new Command(
             ["random", "r"], 
             [], 
+            null,
             "random will ... say a random quote. Come on.",
             this.sayRandom.bind(this)
         );

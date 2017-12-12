@@ -13,18 +13,16 @@ export abstract class BaseModule implements Module
     public cmds: Command[];
     public db: Database;
     public ds: DataStore;
-    public requiredRoles: string[];
 
     /**
      * @constructor
      * @param {Database} db Database context.
      * @param {string[]} roles The roles required to perform commands in this module.
      */
-    constructor(db: Database, dataStore: DataStore, roles: string[] = [])
+    constructor(db: Database, dataStore: DataStore)
     {
         this.db = db;
         this.ds = dataStore;
-        this.requiredRoles = roles;
         this.cmds = [];
         this.setupCommands();
     }
@@ -75,20 +73,7 @@ export abstract class BaseModule implements Module
             throw new Error("Provided command is not supported in this module");
         }
 
-        // If this module doesn't require any roles, just perform the action.
-        if (this.requiredRoles.length === 0)
-        {
-            return cmd.action(message, args);
-        }
-
-        // This module requires roles so do some checking to make sure the author has them
-        // in the target guild.
-        const guildMember: Discord.GuildMember = message.guild.members.find(x => x.id === message.author.id);
-        const hasRequiredRole: boolean = this.requiredRoles.some(x => guildMember.roles.some(y => y.name === x));
-        if (hasRequiredRole)
-        {
-            cmd.action(message, args);
-        }
+        cmd.doAction(message, args);
     }
 
     /**

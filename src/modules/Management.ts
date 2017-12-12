@@ -3,7 +3,7 @@ import * as Discord from "discord.js";
 import { BaseModule } from "../core/module/BaseModule";
 import { Command } from "../core/module/Command";
 import { Argument } from "../core/module/Argument";
-import { DataStoreKeys } from "../core/constants";
+import { DataStoreKeys, PrismCommanderRole } from "../core/constants";
 
 /**
  * Module for management commands.
@@ -15,6 +15,7 @@ export class ManagementModule extends BaseModule
         const addIgnoredUserCmd: Command = new Command(
             ["addignoreduser", "aiu"],
             [new Argument("userId", true)],
+            [PrismCommanderRole],
             "Add a user to the ignored user list by id.",
             this.addIgnoredUser.bind(this)
         );
@@ -22,6 +23,7 @@ export class ManagementModule extends BaseModule
         const removeIgnoredUserCmd: Command = new Command(
             ["removeignoreduser", "riu"],
             [new Argument("userId", true)],
+            [PrismCommanderRole],
             "Remove a user from the ignored user list by id.",
             this.removeIgnoredUser.bind(this)
         );

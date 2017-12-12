@@ -16,7 +16,8 @@ export class SillyModule extends BaseModule
     {
         const powerCommand: Command = new Command(
             ["power"], 
-            [], 
+            [],
+            null, 
             "U N L I M I T E D P O W E R",
             this.unlimitedPower.bind(this)
         );

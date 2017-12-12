@@ -1,6 +1,6 @@
 import * as Discord from "discord.js";
 
-import { DataStoreKeys, PrismCommander } from "./constants";
+import { DataStoreKeys } from "./constants";
 import { Config } from "./Config";
 import { Database } from "./Database";
 import { MessageHandler } from "./MessageHandler";
@@ -141,7 +141,7 @@ export class Prism
         const modulesToValidate: Module[] = [
             new QuotesModule(this.db, this.ds), 
             new SillyModule(this.db, this.ds), 
-            new ManagementModule(this.db, this.ds, [PrismCommander])
+            new ManagementModule(this.db, this.ds)
         ];
 
         modulesToValidate.forEach(x => {
