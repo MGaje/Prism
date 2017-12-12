@@ -100,7 +100,7 @@ export abstract class BaseModule implements Module
         const cmdFind: Command = this.getCommand(cmdName);
         if (!cmdFind)
         {
-            // How in the world did you g
+            // How in the world did you get here?
             throw new Error("Command not supported by this module.");
         }
 
