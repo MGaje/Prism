@@ -1,6 +1,6 @@
 import * as Discord from "discord.js";
 
-import { DataStoreKeys } from "./constants";
+import { DataStoreKeys, PrismCommander } from "./constants";
 import { Config } from "./Config";
 import { Database } from "./Database";
 import { MessageHandler } from "./MessageHandler";
@@ -167,7 +167,7 @@ export class Prism
         currentCommandNames = currentCommandNames.concat(sillyModuleCmdNames);
 
         // Management module.
-        const managementModule: Module = new ManagementModule(this.db, this.ds);
+        const managementModule: Module = new ManagementModule(this.db, this.ds, [PrismCommander]);
         const managementModuleCmdNames: string[] = [].concat(...managementModule.getCommandNames(true));
 
         if (!this.validateModule(managementModuleCmdNames, currentCommandNames))
