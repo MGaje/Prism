@@ -12,7 +12,6 @@ import { QuotesModule } from "../modules/quotes";
 export class MessageHandler
 {
     public modules: Module[];
-    public supportedCommands: string[];
     public ds: DataStore;
 
     /**
@@ -23,7 +22,6 @@ export class MessageHandler
     constructor(modules: Module[], dataStore: DataStore)
     {
         this.modules = modules;
-        this.supportedCommands = [].concat(...this.modules.map(x => x.getCommandNames()));
         this.ds = dataStore;
     }
 
@@ -67,7 +65,7 @@ export class MessageHandler
             const helpCmd: string = (args[0]) ? args[0].trim() : undefined;
             if (!helpCmd)
             {
-                message.channel.send("Available commands: " + this.supportedCommands.join(", "));
+                message.channel.send("Available commands: " + [].concat(...this.modules.map(x => x.getCommandNames(false, message.author, message.guild))).join(", "));
             }
             else
             {

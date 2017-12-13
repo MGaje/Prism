@@ -11,7 +11,7 @@ export interface Module
 
     supportsCommand(cmdName: string, args?: any[]): boolean;
     runCommand(message: Discord.Message, cmdName: string, args: any[]);
-    getCommandNames(withAliases?: boolean): string[];
+    getCommandNames(withAliases?: boolean, forUser?: Discord.User, forGuild?: Discord.Guild): string[];
     setupCommands();
     getHelp(cmdName: string): string;
 }

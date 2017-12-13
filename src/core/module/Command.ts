@@ -73,9 +73,7 @@ export class Command
         }
 
         // The command requires special roles. Check to make sure the user has the specified roles.
-        const guildMember: Discord.GuildMember = message.guild.members.find(x => x.id === message.author.id);
-        const canPerformAction: boolean = this.requiredRoles.every(x => guildMember.roles.some(y => y.name === x));
-        if (canPerformAction)
+        if (this.canUserPerform(message.author, message.guild))
         {
             this._action(message, args);
         }
@@ -113,5 +111,17 @@ export class Command
         stringBuilder.push(" - ", this.help);
 
         return stringBuilder.join("");
+    }
+
+    /**
+     * Determine if the specified user can perform this command in the specified guild.
+     * @param {Discord.User} forUser The user that want to perform the command.
+     * @param {Discord.Guild} forGuild The guild in which the request was sent.
+     * @returns {boolean} Flag indicating if user can perform command in guild.
+     */
+    public canUserPerform(forUser: Discord.User, forGuild: Discord.Guild): boolean
+    {
+        const guildMember: Discord.GuildMember = forGuild.members.find(x => x.id === forUser.id);
+        return this.requiredRoles.every(x => guildMember.roles.some(y => y.name === x));
     }
 }

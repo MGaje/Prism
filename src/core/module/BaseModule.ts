@@ -78,16 +78,29 @@ export abstract class BaseModule implements Module
 
     /**
      * Get all command names for this module.
+     * @param {boolean} withAliases (Optional) Flag indicating if the returned array should also contain aliases.
+     * @param {Discord.User} forUser (Optional) User for which the command list will be filtered by based on role.
+     * @param {Discord.Guild} forGuild (Optional) Guild for which the command list will be filtered by based on role.
      * @returns {string[]} Array of supported command names.
      */
-    public getCommandNames(withAliases?: boolean): string[]
+    public getCommandNames(withAliases?: boolean, forUser?: Discord.User, forGuild?: Discord.Guild): string[]
     {
+        // Lambda for grabbing either the main command name or command name AND aliases.
+        let f = x => x.names;
         if (!withAliases)
         {
-            return [].concat(this.cmds.map(x => x.names[0]));
+            f = x => x.names[0];
         }
 
-        return [].concat(this.cmds.map(x => x.names));
+        // If a user and a guild are supplied, filter the command list by whether or not the user could perform
+        // those commands in the specified guild.
+        if (forUser && forGuild)
+        {
+            return [].concat(this.cmds.filter(x => x.canUserPerform(forUser, forGuild)).map(f));
+        }
+
+        // Return list of commands with no filter.
+        return [].concat(this.cmds.map(f));
     }
 
     /**
