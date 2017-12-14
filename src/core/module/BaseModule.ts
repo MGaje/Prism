@@ -30,10 +30,28 @@ export abstract class BaseModule implements Module
     /**
      * Determine whether or not this module supports the provided command.
      * @param {string} cmdName The command name.
-     * @param {any[]} args Arguments of the command.
      * @returns {boolean} Flag that indicates is the specified command is supported by this module.
      */
-    public supportsCommand(cmdName: string, args?: any[]): boolean
+    public supportsCommand(cmdName: string): boolean
+    {
+        const cmdFind: Command = this.getCommand(cmdName);
+        if (!cmdFind)
+        {
+            return false;
+        }
+        
+        return true;
+    }
+
+    /**
+     * Validates the call of the specified command.
+     * @param {string} cmdName The name of the command to call.
+     * @param {any[]} args The arguments for the command.
+     * @param {Discord.User} user The user that initiated the call.
+     * @param {Discord.Guild} guild The guild in which the call was initiated.
+     * @returns {boolean} Flag that indicates whether or not the command call is valid.
+     */
+    public isValidCommandCall(cmdName: string, args: any[], user: Discord.User, guild: Discord.Guild): boolean
     {
         const cmdFind: Command = this.getCommand(cmdName);
         if (!cmdFind)
@@ -41,8 +59,7 @@ export abstract class BaseModule implements Module
             return false;
         }
 
-        // todo: Think about this some more. I'm not entirely happy with this function also validating
-        // provided arguments. Should probably put this into its own function.
+        // Validate arguments.
         if (args)
         {
             for (let i: number = 0; i < cmdFind.argDefs.length; ++i)
@@ -53,8 +70,32 @@ export abstract class BaseModule implements Module
                 }
             }
         }
+
+        // Validate user privilege.
+        if (!cmdFind.canUserPerform(user, guild))
+        {
+            return false;
+        }
         
         return true;
+    }
+
+    /**
+     * Determine if user has the privilege to call the specified command in the specified guild.
+     * @param {string} cmdName The command to check.
+     * @param {Discord.User} user The user to check.
+     * @param {Discord.Guild} guild The guild to check.
+     * @returns {boolean} Flag indicating if the specified user can call the specified command in the specified guild.
+     */
+    public canUserPerformCommand(cmdName: string, user: Discord.User, guild: Discord.Guild): boolean
+    {
+        const cmdFind: Command = this.getCommand(cmdName);
+        if (!cmdFind)
+        {
+            return false;
+        }
+
+        return cmdFind.canUserPerform(user, guild);
     }
 
     /**

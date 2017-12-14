@@ -65,13 +65,13 @@ export class MessageHandler
             const helpCmd: string = (args[0]) ? args[0].trim() : undefined;
             if (!helpCmd)
             {
-                message.channel.send("Available commands: " + [].concat(...this.modules.map(x => x.getCommandNames(false, message.author, message.guild))).join(", "));
+                message.channel.send("Available commands: " + this.getCommands(message));
             }
             else
             {
                 const foundCommand: boolean = this.modules.some(x =>
                     {
-                        if (x.supportsCommand(helpCmd))
+                        if (x.supportsCommand(helpCmd) && x.canUserPerformCommand(helpCmd, message.author, message.guild))
                         {
                             message.channel.send(x.getHelp(helpCmd));
                             return true;
@@ -80,7 +80,7 @@ export class MessageHandler
 
                 if (!foundCommand)
                 {
-                    message.channel.send("Unknown command.");
+                    message.channel.send("Unknown command or you do not have the appropriate role to use this command.");
                 }
             }
         }
@@ -88,7 +88,7 @@ export class MessageHandler
         {
             this.modules.some(x =>
             {
-                if (x.supportsCommand(cmd, args))
+                if (x.supportsCommand(cmd) && x.isValidCommandCall(cmd, args, message.author, message.guild))
                 {
                     x.runCommand(message, cmd, args);
                     return true;
@@ -120,5 +120,15 @@ export class MessageHandler
     {
         const ignoredUsersList: Discord.Snowflake[] = this.ds.get(DataStoreKeys.IgnoredUsersList);
         return ignoredUsersList.some(x => x === authorId);
+    }
+
+    /**
+     * Get all supported commands based on guild user role.
+     * @param {Discord.Message} message The discord.js message instance.
+     * @returns {string} Comma separated list of commands.
+     */
+    private getCommands(message: Discord.Message): string
+    {
+        return [].concat(...this.modules.map(x => x.getCommandNames(false, message.author, message.guild))).join(", ");
     }
 }
