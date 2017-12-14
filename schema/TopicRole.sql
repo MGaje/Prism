@@ -1,0 +1,1 @@
+CREATE TABLE `TopicRole` ( `Id` INTEGER, `Name` TEXT, `RoleId` TEXT, PRIMARY KEY(`Id`) );
