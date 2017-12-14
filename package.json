@@ -11,7 +11,7 @@
     "author": "Michael Gajewski",
     "dependencies": {
         "bufferutil": "^3.0.2",
-        "discord.js": "^11.2.1",
+        "discord.js": "git+https://github.com/hydrabolt/discord.js.git#11.3-dev",
         "mathjs": "^3.17.0",
         "sqlite3": "^3.1.13",
         "uglifyjs-webpack-plugin": "^1.1.1",
