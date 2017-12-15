@@ -41,36 +41,35 @@ export class Prism
      * Run the bot.
      * @param {string} dbPath Path of the database file.
      */
-    public run(dbPath: string)
+    public async run(dbPath: string): Promise<void>
     {
         console.log("--Attempting to connect to db: " + dbPath + "--");
-        
-        this.db.connect(dbPath)
-            .then(() => 
-            {
-                console.log("--Connected to db--");
+
+        try
+        {
+            await this.db.connect(dbPath);
+
+            console.log("--Connected to db--");
                 
-                console.log("--Setting up event listeners--");
-                this.setupListeners();
+            console.log("--Setting up event listeners--");
+            this.setupListeners();
 
-                console.log("--Registering modules--");
-                this.registerModules();
+            console.log("--Registering modules--");
+            this.registerModules();
 
-                console.log("--Cache data--");
-                this.cacheData()
-                    .then(() => 
-                    {
-                        console.log("--Creating Message Handler--");
-                        this.mh = new MessageHandler(this.modules, this.ds);
-        
-                        console.log("--Atempting to login--");
-                        this.botClient.login(this.config.botToken); 
-                    });
-            },
-            err =>
-            {
-                console.error(err.message);
-            });
+            console.log("--Cache data--");
+            await this.cacheData();
+
+            console.log("--Creating Message Handler--");
+            this.mh = new MessageHandler(this.modules, this.ds);
+
+            console.log("--Atempting to login--");
+            this.botClient.login(this.config.botToken); 
+        }
+        catch (e)
+        {
+            console.error(e.message);
+        }
     }
 
     /**
