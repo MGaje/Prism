@@ -36,7 +36,7 @@ export class ManagementModule extends BaseModule
      * @param {Discord.Message} message The discord.js message instance.
      * @param {any[]} args Arguments for the command.
      */
-    private addIgnoredUser(message: Discord.Message, args?: any[])
+    private async addIgnoredUser(message: Discord.Message, args?: any[])
     {
         const userId: Discord.Snowflake = args[0];
         
@@ -47,19 +47,19 @@ export class ManagementModule extends BaseModule
             return;
         }
 
-        this.db.run("INSERT INTO IgnoredUser(UserId) VALUES(?)", [userId])
-            .then(success =>
-            {
-                if (!success)
-                {
-                    throw new Error("Unable to add entry to IgnoredUser table.");
-                }
+        try
+        {
+            await this.db.run("INSERT INTO IgnoredUser(UserId) VALUES(?)", [userId]);
 
-                ignoredUserList.push(userId);
-                this.ds.set(DataStoreKeys.IgnoredUsersList, ignoredUserList);
+            ignoredUserList.push(userId);
+            this.ds.set(DataStoreKeys.IgnoredUsersList, ignoredUserList);
 
-                message.channel.send("User added to ignore list.");
-            });
+            message.channel.send("User added to ignore list.");
+        }
+        catch(e)
+        {
+            console.error(e.message);
+        }
     }
 
     /**
@@ -67,7 +67,7 @@ export class ManagementModule extends BaseModule
      * @param {Discord.Message} message The discord.js messsage instance.
      * @param {any[]} args Arguments for the command.
      */
-    private removeIgnoredUser(message: Discord.Message, args?: any[])
+    private async removeIgnoredUser(message: Discord.Message, args?: any[])
     {
         const userId: Discord.Snowflake = args[0];
 
@@ -78,19 +78,19 @@ export class ManagementModule extends BaseModule
             return;
         }
 
-        this.db.run("DELETE FROM IgnoredUser WHERE UserId = ?", [userId])
-            .then(success =>
-            {
-                if (!success)
-                {
-                    throw new Error("Unable to remove entry from the IgnoredUser table.");
-                }
+        try
+        {
+            await this.db.run("DELETE FROM IgnoredUser WHERE UserId = ?", [userId]);
 
-                const updatedIgnoredUserList = ignoredUserList.filter(x => x !== userId);
-                this.ds.set(DataStoreKeys.IgnoredUsersList, updatedIgnoredUserList);
+            const updatedIgnoredUserList = ignoredUserList.filter(x => x !== userId);
+            this.ds.set(DataStoreKeys.IgnoredUsersList, updatedIgnoredUserList);
 
-                message.channel.send("User removed from ignore list.");
-            });
+            message.channel.send("User removed from ignore list.");
+        }
+        catch(e)
+        {
+            console.error(e.message);
+        }
 
     }
 }
