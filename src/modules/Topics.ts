@@ -1,4 +1,4 @@
-import * as Discord from "../../typings/discord.js";
+import * as Discord from "discord.js";
 
 import { BaseModule } from "../core/module/BaseModule";
 import { Command } from "../core/module/Command";
