@@ -64,18 +64,19 @@ export class Command
      * @param message The discord.js message instance.
      * @param args Arguments of the command.
      */
-    public doAction(message: Discord.Message, args?: any[])
+    public async doAction(message: Discord.Message, args?: any[])
     {
         // If the command requires no special roles, just perform the action.
         if (this.requiredRoles.length === 0)
         {
-            return this._action(message, args);
+            await this._action(message, args);
+            return;
         }
 
         // The command requires special roles. Check to make sure the user has the specified roles.
         if (this.canUserPerform(message.author, message.guild))
         {
-            this._action(message, args);
+            await this._action(message, args);
         }
     }
 

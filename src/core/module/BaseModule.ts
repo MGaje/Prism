@@ -104,7 +104,7 @@ export abstract class BaseModule implements Module
      * @param cmdName The command name.
      * @param args Arguments of the command.
      */
-    public runCommand(message: Discord.Message, cmdName: string, args: any[])
+    public async runCommand(message: Discord.Message, cmdName: string, args: any[])
     {
         // Get command instance in case an alias was provided.
         const cmd: Command = this.getCommand(cmdName);
@@ -114,7 +114,14 @@ export abstract class BaseModule implements Module
             throw new Error("Provided command is not supported in this module");
         }
 
-        cmd.doAction(message, args);
+        try 
+        {
+            await cmd.doAction(message, args);
+        } 
+        catch (e) 
+        {
+            console.error(e);
+        }
     }
 
     /**

@@ -30,7 +30,7 @@ export class SillyModule extends BaseModule
      * @param {Discord.Message} message The discord.js message instance.
      * @param {any[]} args Arguments for the command.
      */
-    private unlimitedPower(message: Discord.Message, args?: any[])
+    private async unlimitedPower(message: Discord.Message, args?: any[])
     {
         message.channel.send("https://giphy.com/gifs/power-highqualitygifs-unlimited-hokMyu1PAKfJK");
     }
