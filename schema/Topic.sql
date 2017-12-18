@@ -1,1 +1,1 @@
-CREATE TABLE `Topic` ( `Id` INTEGER, `Name` TEXT NOT NULL, `TopicCategoryId` INTEGER NOT NULL, PRIMARY KEY(`Id`) );
+CREATE TABLE "Topic" ( `Id` INTEGER, `Name` TEXT NOT NULL, PRIMARY KEY(`Id`) );
