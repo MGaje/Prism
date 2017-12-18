@@ -3,6 +3,7 @@ import * as Discord from "discord.js";
 import { BaseModule } from "../core/module/BaseModule";
 import { Command } from "../core/module/Command";
 import { Argument } from "../core/module/Argument";
+import { PrismCommanderRole } from "../core/constants";
 
 /**
  * Module for topic management.

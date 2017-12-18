@@ -10,6 +10,7 @@ import { Module } from "./module/interfaces/Module";
 import { QuotesModule } from "../modules/Quotes";
 import { SillyModule } from "../modules/Silly";
 import { ManagementModule } from "../modules/Management";
+import { TopicsModule } from "../modules/Topics";
 
 /**
  * Main bot construct.
@@ -140,7 +141,8 @@ export class Prism
         const modulesToValidate: Module[] = [
             new QuotesModule(this.db, this.ds), 
             new SillyModule(this.db, this.ds), 
-            new ManagementModule(this.db, this.ds)
+            new ManagementModule(this.db, this.ds),
+            new TopicsModule(this.db, this.ds)
         ];
 
         modulesToValidate.forEach(x => {
