@@ -1,1 +1,1 @@
-CREATE TABLE `TableCategory` ( `Id` INTEGER, `CategoryId` TEXT NOT NULL, PRIMARY KEY(`Id`) )
+CREATE TABLE "TopicCategory" ( `Id` INTEGER, `CategoryId` TEXT NOT NULL, `PrimaryChannelId` TEXT NOT NULL, PRIMARY KEY(`Id`) )
