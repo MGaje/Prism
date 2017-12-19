@@ -102,20 +102,6 @@ export class MessageHandler
                 }
             });
         }
-
-        // Not sure how I feel about the auto deletes.
-        //
-        // const gm: Discord.GuildMember = message.guild.members.find(x => x.id === BotId);
-        // if (!gm)
-        // {
-        //     return console.error("Couldn't find bot guild member for server \"" + message.guild.name + "\"");
-        // }
-
-        // if (gm.hasPermission(Discord.Permissions.FLAGS.MANAGE_MESSAGES))
-        // {
-        //     message.delete()
-        //         .catch(console.error);
-        // }
     }
     
     /**

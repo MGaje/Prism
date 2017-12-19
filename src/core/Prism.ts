@@ -49,20 +49,19 @@ export class Prism
         try
         {
             await this.db.connect(dbPath);
-
             console.log("--Connected to db--");
-                
-            console.log("--Setting up event listeners--");
-            this.setupListeners();
 
             console.log("--Registering modules--");
             this.registerModules();
 
+            console.log("--Setting up handlers--");
+            this.setupHandlers();
+                
+            console.log("--Setting up event listeners--");
+            this.setupListeners();
+
             console.log("--Cache data--");
             await this.cacheData();
-
-            console.log("--Creating Message Handler--");
-            this.mh = new MessageHandler(this.modules, this.ds);
 
             console.log("--Atempting to login--");
             this.botClient.login(this.config.botToken); 
@@ -71,6 +70,15 @@ export class Prism
         {
             console.error(e.message);
         }
+    }
+
+    /**
+     * Sets up all the handlers.
+     */
+    private setupHandlers()
+    {
+        console.log("--Creating Message Handler--");
+        this.mh = new MessageHandler(this.modules, this.ds);
     }
 
     /**
@@ -91,6 +99,11 @@ export class Prism
             {
                 this.mh.handleMsg(message);
             }
+        });
+
+        this.botClient.on('channelDelete', channel =>
+        {
+
         });
         
         this.botClient.on("disconnect", () =>
