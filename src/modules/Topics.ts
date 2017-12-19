@@ -18,6 +18,7 @@ export class TopicsModule extends BaseModule
      */
     public setupCommands()
     {
+        // Add topic category command.
         const addTopicCategoryCmd: Command = new Command(
             ['addtopiccategory', 'addtopiccat'],
             [new Argument("categoryName", true), new Argument("primaryChannelName", true)],
@@ -26,6 +27,7 @@ export class TopicsModule extends BaseModule
             this.addTopicCategory.bind(this)
         );
 
+        // See topic categories command.
         const seeTopicCategoriesCmd: Command = new Command(
             ['seetopiccategories', 'seetopiccats'],
             [],
@@ -62,6 +64,14 @@ export class TopicsModule extends BaseModule
             if (!primaryChannel)
             {
                 message.channel.send(`Cannot find '${primaryChannelName}' in category '${categoryName}'.`);
+                return;
+            }
+
+            // Make sure the category doesn't exist already.
+            const categoryInDb: any = await this.db.get("SELECT Id FROM TopicCategory WHERE CategoryId = ?", [discordCategory.id]);
+            if (categoryInDb)
+            {
+                message.channel.send("Topic category already exists.");
                 return;
             }
 
@@ -116,5 +126,16 @@ export class TopicsModule extends BaseModule
         {
             throw e;
         }
+    }
+
+    /**
+     * Add topic entry. Creates role, text channel, and updates permissions accordingly.
+     * @param message The discord.js message instance.
+     * @param args Arguments of the command.
+     */
+    private async addTopic(message: Discord.Message, args?: any[])
+    {
+        const topicName: string = args[0];
+        const categoryName: string = args[1];
     }
 }
