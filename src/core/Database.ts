@@ -76,9 +76,9 @@ export class Database
      * Run a query.
      * @param {string} sql The sql query.
      * @param {any} params The params for the query.
-     * @returns {Promise<boolean>} A promise with query run result represented by a boolean.
+     * @returns {Promise<any>} A promise with query's result last id that was updated. 
      */
-    public run(sql: string, params: any): Promise<boolean>
+    public run(sql: string, params: any): Promise<number>
     {
         return new Promise((resolve, reject) =>
         {
@@ -87,14 +87,18 @@ export class Database
                 reject(new Error("Database context is not initialized."));
             }
 
-            this.db.run(sql, params, err =>
+            // Couldn't use arrow function here because this sqlite3 lib uses 'this' in the function body to
+            // store data.
+            this.db.run(sql, params, function(err)
             {
                 if (err)
                 {
                     reject(err);
                 }
 
-                resolve(true);
+                const lastId: number = this.lastID;
+
+                resolve(lastId);
             });
         });
     }

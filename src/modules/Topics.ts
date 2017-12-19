@@ -36,7 +36,16 @@ export class TopicsModule extends BaseModule
             this.seeTopicCategories.bind(this)
         );
 
-        this.cmds.push(addTopicCategoryCmd, seeTopicCategoriesCmd);
+        // Add topic command.
+        const addTopicCmd: Command = new Command(
+            ['addtopic'],
+            [new Argument("topicName", true), new Argument("categoryName", true)],
+            [PrismCommanderRole],
+            "Add a topic. topicName is the desired channel/role name and categoryName is the category to which it will belong.",
+            this.addTopic.bind(this)
+        );
+
+        this.cmds.push(addTopicCategoryCmd, seeTopicCategoriesCmd, addTopicCmd);
     }
 
     /**
@@ -68,16 +77,14 @@ export class TopicsModule extends BaseModule
             }
 
             // Make sure the category doesn't exist already.
-            const categoryInDb: any = await this.db.get("SELECT Id FROM TopicCategory WHERE CategoryId = ?", [discordCategory.id]);
-            if (categoryInDb)
+            if (await this.topicCategoryExists(discordCategory))
             {
                 message.channel.send("Topic category already exists.");
                 return;
             }
 
             // Add category to the db.
-            const success: boolean = await this.db.run("INSERT INTO TopicCategory(CategoryId, PrimaryChannelId) VALUES(?, ?)", [discordCategory.id, primaryChannel.id]);
-            if (!success)
+            if (!await this.db.run("INSERT INTO TopicCategory(CategoryId, PrimaryChannelId) VALUES(?, ?)", [discordCategory.id, primaryChannel.id]))
             {
                 message.channel.send(`Unable to add category '${categoryName}' to db.`);
                 return;
@@ -136,6 +143,101 @@ export class TopicsModule extends BaseModule
     private async addTopic(message: Discord.Message, args?: any[])
     {
         const topicName: string = args[0];
+        const topicNameNormalized: string = topicName.toLowerCase();
         const categoryName: string = args[1];
+
+        try 
+        {
+            // Find category. Refactor when the library typings are finalized.
+            const discordCategory: Discord.CategoryChannel = message.guild.channels.find(x => x.name.toLowerCase() === categoryName.toLowerCase()) as Discord.CategoryChannel;
+            if (!discordCategory)
+            {
+                message.channel.send(`'${categoryName}' does not correspond to a Discord channel/category.`);
+                return;
+            }
+
+            // Check to see if topic category exists.
+            if (!await this.topicCategoryExists(discordCategory))
+            {
+                message.channel.send(`'${categoryName}' is not a recognized topic category. Please add it with the _!addtopiccategory_ command.`);
+                return;
+            }
+
+            // Check to see if topic exists.
+            if (await this.topicExists(topicNameNormalized))
+            {
+                message.channel.send(`'${topicName}' already exists as a topic.`);
+                return;
+            }
+
+            // Add topic to db.
+            const topicId: number = await this.db.run("INSERT INTO Topic(Name, TopicCategoryId) VALUES(?, ?)", [topicNameNormalized, discordCategory.id]);
+            if (!topicId)
+            {
+                message.channel.send(`Unable to add topic '${topicName}' to db.`);
+                return;
+            }
+
+            // Create the text channel for the topic.
+            const topicChannel: Discord.GuildChannel = await message.guild.createChannel(topicName, 'text');
+
+            // todo: Remove the ridiculous 'any' cast when the typings are updated.
+            (<any>topicChannel).setParent(discordCategory.id);
+
+            // Update everyone role for this channel so that they cannot see it.
+            const everyoneRole: Discord.Role = message.guild.roles.find(x => x.name === "@everyone");
+            topicChannel.overwritePermissions(everyoneRole.id, <any>{ 'SEND_MESSAGES': false, 'VIEW_CHANNEL': false });
+
+            // Create topic role and adjust permissions so that they CAN read/send messages.
+            const topicRole: Discord.Role = await message.guild.createRole({ name: topicName, color: 'WHITE'});
+            topicChannel.overwritePermissions(topicRole.id, <any>{'SEND_MESSAGES': true, 'VIEW_CHANNEL': true });
+
+            // Add topic role to db.
+            if (!await this.db.run("INSERT INTO TopicRole(RoleId, TopicId) VALUES(? ,?)", [topicRole.id, topicId]))
+            {
+                message.channel.send(`Unable to add new topic role to db.`);
+                return;
+            }
+
+            message.channel.send("Topic added.");
+        } 
+        catch (e) 
+        {
+            throw e;
+        }
+    }
+
+    // -----------------------------------------------------------------------------------
+    // Utility functions.
+    // -----------------------------------------------------------------------------------
+
+    /**
+     * Determine if topic category exists in the db.
+     * @param category Discord.js CategoryChannel instance.
+     * @returns {Promise<boolean>} Flag indicating whether or not the topic category exists.
+     */
+    private async topicCategoryExists(category: Discord.CategoryChannel): Promise<boolean>
+    {
+        return new Promise<boolean>((resolve, reject) =>
+        {
+            this.db.get("SELECT Id FROM TopicCategory WHERE CategoryId = ?", [category.id])
+                .then(row => resolve(!!row))
+                .catch(e => reject(e));
+        });
+    }
+
+    /**
+     * Determine if topic exists in the db.
+     * @param topic The topic we are searching for.
+     * @returns {Promise<boolean>} Flag indicating whether or not the topic exists.
+     */
+    private async topicExists(topic: string): Promise<boolean>
+    {
+        return new Promise<boolean>((resolve, reject) =>
+        {
+            this.db.get("SELECT Id FROM Topic WHERE Name = ?", [topic])
+                .then(row => resolve(!!row))
+                .catch(e => reject(e));
+        });
     }
 }
