@@ -28,8 +28,8 @@ export class TopicsModule extends BaseModule
         );
 
         // See topic categories command.
-        const seeTopicCategoriesCmd: Command = new Command(
-            ['seetopiccategories', 'seetopiccats'],
+        const topicCategoriesCmd: Command = new Command(
+            ['topiccategories', 'topiccats'],
             [],
             [PrismCommanderRole],
             "See all supported topic categories.",
@@ -45,7 +45,21 @@ export class TopicsModule extends BaseModule
             this.addTopic.bind(this)
         );
 
-        this.cmds.push(addTopicCategoryCmd, seeTopicCategoriesCmd, addTopicCmd);
+        // See topics command.
+        const topicsCmd: Command = new Command(
+            ['topics'],
+            [],
+            null,
+            "See all topics in the category the channel belongs to.",
+            this.seeTopicsList.bind(this)
+        );
+
+        this.cmds.push(
+            addTopicCategoryCmd, 
+            topicCategoriesCmd, 
+            addTopicCmd, 
+            topicsCmd
+        );
     }
 
     /**
@@ -207,6 +221,54 @@ export class TopicsModule extends BaseModule
         }
     }
 
+    /**
+     * See list of topics. Uses the channel the message was sent to get the appropriate category.
+     * @param message The discord.js message instance.
+     * @param args Arguments of the command.
+     */
+    private async seeTopicsList(message: Discord.Message, args?: any[])
+    {
+        const channel: Discord.Channel = message.channel;
+
+        try 
+        {
+            // Get the Discord category of the channel.
+            const category: Discord.CategoryChannel = (<any>channel).parent;
+            if (!category)
+            {
+                message.channel.send(`Could not determine category of this channel.`);
+                return;
+            }
+
+            // Determine if the Discord category is a valid topic category.
+            if (!await this.topicCategoryExists(category))
+            {
+                // Do something here?
+                return;
+            }
+
+            //
+            // todo: Add explicit primary channel check.
+            //
+
+            // Get topics based on category.
+            const topicList: string[] = (await this.db.all("SELECT Name FROM Topic WHERE TopicCategoryId = ?", [category.id])).map(x => x.Name);
+
+            // Create rich embed for response.
+            const embed: Discord.RichEmbed = new Discord.RichEmbed();
+            embed.setColor([0, 0, 255]);
+            embed.setDescription(`**${category.name}** category.`);
+            embed.addField("Topics", topicList.join(", "), true);
+
+            // Send response.
+            message.channel.send(embed);
+        } 
+        catch (e) 
+        {
+            throw e;
+        }
+    }
+
     // -----------------------------------------------------------------------------------
     // Utility functions.
     // -----------------------------------------------------------------------------------
@@ -216,7 +278,7 @@ export class TopicsModule extends BaseModule
      * @param category Discord.js CategoryChannel instance.
      * @returns {Promise<boolean>} Flag indicating whether or not the topic category exists.
      */
-    private async topicCategoryExists(category: Discord.CategoryChannel): Promise<boolean>
+    private topicCategoryExists(category: Discord.CategoryChannel): Promise<boolean>
     {
         return new Promise<boolean>((resolve, reject) =>
         {
@@ -231,7 +293,7 @@ export class TopicsModule extends BaseModule
      * @param topic The topic we are searching for.
      * @returns {Promise<boolean>} Flag indicating whether or not the topic exists.
      */
-    private async topicExists(topic: string): Promise<boolean>
+    private topicExists(topic: string): Promise<boolean>
     {
         return new Promise<boolean>((resolve, reject) =>
         {
