@@ -228,7 +228,7 @@ export class TopicsModule extends BaseModule
      */
     private async seeTopicsList(message: Discord.Message, args?: any[])
     {
-        const channel: Discord.Channel = message.channel;
+        const channel: Discord.GuildChannel = message.channel as Discord.GuildChannel;
 
         try 
         {
@@ -240,16 +240,12 @@ export class TopicsModule extends BaseModule
                 return;
             }
 
-            // Determine if the Discord category is a valid topic category.
-            if (!await this.topicCategoryExists(category))
+            // Check if channel is a primary channel for the category (this also validates the category).
+            if (!await this.isPrimaryChannelForCategory(channel, category))
             {
                 // Do something here?
                 return;
             }
-
-            //
-            // todo: Add explicit primary channel check.
-            //
 
             // Get topics based on category.
             const topicList: string[] = (await this.db.all("SELECT Name FROM Topic WHERE TopicCategoryId = ?", [category.id])).map(x => x.Name);
@@ -275,7 +271,7 @@ export class TopicsModule extends BaseModule
 
     /**
      * Determine if topic category exists in the db.
-     * @param category Discord.js CategoryChannel instance.
+     * @param {Discord.CategoryChannel} category Discord.js CategoryChannel instance.
      * @returns {Promise<boolean>} Flag indicating whether or not the topic category exists.
      */
     private topicCategoryExists(category: Discord.CategoryChannel): Promise<boolean>
@@ -283,6 +279,22 @@ export class TopicsModule extends BaseModule
         return new Promise<boolean>((resolve, reject) =>
         {
             this.db.get("SELECT Id FROM TopicCategory WHERE CategoryId = ?", [category.id])
+                .then(row => resolve(!!row))
+                .catch(e => reject(e));
+        });
+    }
+
+    /**
+     * Determine if the specified channel is the primary channel for the specified category.
+     * @param {Discord.GuildChannel} channel Channel to validate if it is a primary channel for the specified category.
+     * @param {Discord.CategoryChannel} category Category to validate primary channel against.
+     * @returns {Promise<boolean>} Flag indicating whether or not the channel is the primary channel for the specified category.
+     */
+    private isPrimaryChannelForCategory(channel: Discord.GuildChannel, category: Discord.CategoryChannel): Promise<boolean>
+    {
+        return new Promise<boolean>((resolve, reject) =>
+        {
+            this.db.get("SELECT Id FROM TopicCategory WHERE CategoryId = ? AND PrimaryChannelId = ?", [category.id, channel.id])
                 .then(row => resolve(!!row))
                 .catch(e => reject(e));
         });
