@@ -54,11 +54,21 @@ export class TopicsModule extends BaseModule
             this.seeTopicsList.bind(this)
         );
 
+        // See topic command.
+        const seeTopicCmd: Command = new Command(
+            ['seetopic'],
+            [new Argument("topicName", true)],
+            null,
+            "Get access to topic channel.",
+            this.seeTopic.bind(this)
+        );
+
         this.cmds.push(
             addTopicCategoryCmd, 
             topicCategoriesCmd, 
             addTopicCmd, 
-            topicsCmd
+            topicsCmd,
+            seeTopicCmd
         );
     }
 
@@ -222,6 +232,65 @@ export class TopicsModule extends BaseModule
     }
 
     /**
+     * Get access to topic channel via topic role..
+     * @param message The discord.js message instance.
+     * @param args Arguments of the command.
+     */
+    private async seeTopic(message: Discord.Message, args?: any[])
+    {
+        const topicName: string = args[0];
+
+        try
+        {
+            const category: Discord.CategoryChannel = (<any>message.channel).parent as Discord.CategoryChannel;
+
+            // Verify category and primary channel.
+            if (!await this.isPrimaryChannelForCategory(message.channel as Discord.GuildChannel, category))
+            {
+                // Do something here?
+                return;
+            }
+
+            // Is the target topic in the category we're in?
+            // todo: Don't access properties on a potentially undefined object. Come on.
+            const topicId: number = (await this.db.get("SELECT Id FROM Topic WHERE Name = ? AND TopicCategoryId = ?", [topicName.toLowerCase(), category.id])).Id;
+            if (!topicId)
+            {
+                message.channel.send(`'${topicName}' not found in '${category.name}' category.`);
+                return;
+            }
+
+            // Get topic role id based on topic.
+            // todo: Don't access properties on a potentially undefined object. Come on.
+            const topicRoleId: string = (await this.db.get("SELECT RoleId FROM TopicRole WHERE TopicId = ?", [topicId])).RoleId;
+            if (!topicRoleId)
+            {
+                message.channel.send(`'${topicName}' does not have a role. What happened?`);
+                return;
+            }
+
+            const guildMember: Discord.GuildMember = message.guild.members.find(x => x.id === message.author.id);
+            if (!guildMember)
+            {
+                return;
+            }
+
+            const guildRole: Discord.Role = message.guild.roles.find(x => x.id === topicRoleId);
+            if (!guildRole)
+            {
+                return;
+            }
+
+            await guildMember.addRole(guildRole);
+            await this.db.run("INSERT INTO UserTopicRole(UserId, TopicRoleId) VALUES(?, ?)", [guildMember.id, topicRoleId]);
+        }
+        catch (e)
+        {
+            throw e;
+        }
+    }
+
+    /**
      * See list of topics. Uses the channel the message was sent to get the appropriate category.
      * @param message The discord.js message instance.
      * @param args Arguments of the command.
@@ -310,6 +379,22 @@ export class TopicsModule extends BaseModule
         return new Promise<boolean>((resolve, reject) =>
         {
             this.db.get("SELECT Id FROM Topic WHERE Name = ?", [topic])
+                .then(row => resolve(!!row))
+                .catch(e => reject(e));
+        });
+    }
+
+    /**
+     * Determine if the provided topic is in the provided category.
+     * @param topic The topic to verify.
+     * @param category The category to use to verify topic.
+     * @returns {Promise<boolean>} Flag indicating whether or not the topic is in the category.
+     */
+    private isTopicInCategory(topic: string, category: Discord.CategoryChannel): Promise<boolean>
+    {
+        return new Promise<boolean>((resolve, reject) =>
+        {
+            this.db.get("SELECT Id FROM Topic WHERE TopicCategoryId = ? AND Name = ?", [category.id, topic])
                 .then(row => resolve(!!row))
                 .catch(e => reject(e));
         });
