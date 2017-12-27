@@ -4,6 +4,7 @@ import { BaseModule } from "../core/module/BaseModule";
 import { Command } from "../core/module/Command";
 import { Argument } from "../core/module/Argument";
 import { PrismCommanderRole } from "../core/constants";
+import { Utility } from "../core/Utility";
 
 /**
  * Module for topic management.
@@ -152,6 +153,7 @@ export class TopicsModule extends BaseModule
 
             // Send response.
             message.channel.send(embed);
+            Utility.deleteMessage(message);
         } 
         catch (e) 
         {
@@ -187,21 +189,6 @@ export class TopicsModule extends BaseModule
                 return;
             }
 
-            // Check to see if topic exists.
-            if (await this.topicExists(topicNameNormalized))
-            {
-                message.channel.send(`'${topicName}' already exists as a topic.`);
-                return;
-            }
-
-            // Add topic to db.
-            const topicId: number = await this.db.run("INSERT INTO Topic(Name, TopicCategoryId) VALUES(?, ?)", [topicNameNormalized, discordCategory.id]);
-            if (!topicId)
-            {
-                message.channel.send(`Unable to add topic '${topicName}' to db.`);
-                return;
-            }
-
             // Create the text channel for the topic.
             const topicChannel: Discord.GuildChannel = await message.guild.createChannel(topicName, 'text');
 
@@ -216,13 +203,6 @@ export class TopicsModule extends BaseModule
             const topicRole: Discord.Role = await message.guild.createRole({ name: topicName, color: 'WHITE'});
             topicChannel.overwritePermissions(topicRole.id, <any>{'SEND_MESSAGES': true, 'VIEW_CHANNEL': true });
 
-            // Add topic role to db.
-            if (!await this.db.run("INSERT INTO TopicRole(RoleId, TopicId) VALUES(? ,?)", [topicRole.id, topicId]))
-            {
-                message.channel.send(`Unable to add new topic role to db.`);
-                return;
-            }
-
             message.channel.send("Topic added.");
         } 
         catch (e) 
@@ -232,13 +212,14 @@ export class TopicsModule extends BaseModule
     }
 
     /**
-     * Get access to topic channel via topic role..
+     * Get access to topic channel via topic role.
      * @param message The discord.js message instance.
      * @param args Arguments of the command.
      */
     private async seeTopic(message: Discord.Message, args?: any[])
     {
         const topicName: string = args[0];
+        const topicNameNormalized: string = topicName.toLowerCase();
 
         try
         {
@@ -252,37 +233,29 @@ export class TopicsModule extends BaseModule
             }
 
             // Is the target topic in the category we're in?
-            // todo: Don't access properties on a potentially undefined object. Come on.
-            const topicId: number = (await this.db.get("SELECT Id FROM Topic WHERE Name = ? AND TopicCategoryId = ?", [topicName.toLowerCase(), category.id])).Id;
-            if (!topicId)
+            const topicInCategory: boolean = category.children.some(x => x.name === topicNameNormalized);
+            if (!topicInCategory)
             {
-                message.channel.send(`'${topicName}' not found in '${category.name}' category.`);
+                message.channel.send(`Topic '${topicName}' not found in category '${category.name}'`);
                 return;
             }
 
-            // Get topic role id based on topic.
-            // todo: Don't access properties on a potentially undefined object. Come on.
-            const topicRoleId: string = (await this.db.get("SELECT RoleId FROM TopicRole WHERE TopicId = ?", [topicId])).RoleId;
-            if (!topicRoleId)
-            {
-                message.channel.send(`'${topicName}' does not have a role. What happened?`);
-                return;
-            }
-
+            // Find the guild member to alter.
             const guildMember: Discord.GuildMember = message.guild.members.find(x => x.id === message.author.id);
             if (!guildMember)
             {
                 return;
             }
 
-            const guildRole: Discord.Role = message.guild.roles.find(x => x.id === topicRoleId);
+            // Find the role to add to guild member.
+            const guildRole: Discord.Role = message.guild.roles.find(x => x.name === topicNameNormalized);
             if (!guildRole)
             {
                 return;
             }
 
             await guildMember.addRole(guildRole);
-            await this.db.run("INSERT INTO UserTopicRole(UserId, TopicRoleId) VALUES(?, ?)", [guildMember.id, topicRoleId]);
+            Utility.deleteMessage(message);
         }
         catch (e)
         {
@@ -317,7 +290,9 @@ export class TopicsModule extends BaseModule
             }
 
             // Get topics based on category.
-            const topicList: string[] = (await this.db.all("SELECT Name FROM Topic WHERE TopicCategoryId = ?", [category.id])).map(x => x.Name);
+            const topicList: string[] = category.children.filter(x => x.type === "text" && x.name !== channel.name)
+                .array()
+                .map(x => x.name);
 
             // Create rich embed for response.
             const embed: Discord.RichEmbed = new Discord.RichEmbed();
@@ -327,6 +302,8 @@ export class TopicsModule extends BaseModule
 
             // Send response.
             message.channel.send(embed);
+
+            Utility.deleteMessage(message);
         } 
         catch (e) 
         {
@@ -364,37 +341,6 @@ export class TopicsModule extends BaseModule
         return new Promise<boolean>((resolve, reject) =>
         {
             this.db.get("SELECT Id FROM TopicCategory WHERE CategoryId = ? AND PrimaryChannelId = ?", [category.id, channel.id])
-                .then(row => resolve(!!row))
-                .catch(e => reject(e));
-        });
-    }
-
-    /**
-     * Determine if topic exists in the db.
-     * @param topic The topic we are searching for.
-     * @returns {Promise<boolean>} Flag indicating whether or not the topic exists.
-     */
-    private topicExists(topic: string): Promise<boolean>
-    {
-        return new Promise<boolean>((resolve, reject) =>
-        {
-            this.db.get("SELECT Id FROM Topic WHERE Name = ?", [topic])
-                .then(row => resolve(!!row))
-                .catch(e => reject(e));
-        });
-    }
-
-    /**
-     * Determine if the provided topic is in the provided category.
-     * @param topic The topic to verify.
-     * @param category The category to use to verify topic.
-     * @returns {Promise<boolean>} Flag indicating whether or not the topic is in the category.
-     */
-    private isTopicInCategory(topic: string, category: Discord.CategoryChannel): Promise<boolean>
-    {
-        return new Promise<boolean>((resolve, reject) =>
-        {
-            this.db.get("SELECT Id FROM Topic WHERE TopicCategoryId = ? AND Name = ?", [category.id, topic])
                 .then(row => resolve(!!row))
                 .catch(e => reject(e));
         });
