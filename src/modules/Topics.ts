@@ -64,12 +64,22 @@ export class TopicsModule extends BaseModule
             this.seeTopic.bind(this)
         );
 
+        // Hide topic command.
+        const hideTopicCmd: Command = new Command(
+            ['hidetopic'],
+            [new Argument("topicName", true)],
+            null,
+            "Remove access to topic channel.",
+            this.hideTopic.bind(this)
+        );
+
         this.cmds.push(
             addTopicCategoryCmd, 
             topicCategoriesCmd, 
             addTopicCmd, 
             topicsCmd,
-            seeTopicCmd
+            seeTopicCmd,
+            hideTopicCmd
         );
     }
 
@@ -257,6 +267,67 @@ export class TopicsModule extends BaseModule
             }
 
             await guildMember.addRole(guildRole);
+            Utility.deleteMessage(message);
+        }
+        catch (e)
+        {
+            throw e;
+        }
+    }
+
+    /**
+     * Remove access to topic channel via topic role.
+     * @param message The discord.js message instance.
+     * @param args Arguments of the command.
+     */
+    private async hideTopic(message: Discord.Message, args?: any[])
+    {
+        const topicName: string = args[0];
+        const topicNameNormalized: string = topicName.toLowerCase();
+
+        try
+        {
+            const category: Discord.CategoryChannel = (<any>message.channel).parent as Discord.CategoryChannel;
+
+            // Verify category and primary channel.
+            if (!await this.isPrimaryChannelForCategory(message.channel as Discord.GuildChannel, category))
+            {
+                // Do something here?
+                return;
+            }
+
+            // Is the target topic in the category we're in?
+            const topicInCategory: boolean = category.children.some(x => x.name === topicNameNormalized);
+            if (!topicInCategory)
+            {
+                message.channel.send(`Topic '${topicName}' not found in category '${category.name}'`);
+                return;
+            }
+
+            // Find the guild member to alter.
+            const guildMember: Discord.GuildMember = message.guild.members.find(x => x.id === message.author.id);
+            if (!guildMember)
+            {
+                console.log(`Guild member not found`);
+                return;
+            }
+
+            // Find the role to add to guild member.
+            const guildRole: Discord.Role = message.guild.roles.find(x => x.name === topicNameNormalized);
+            if (!guildRole)
+            {
+                console.log(`Role not found`);
+                return;
+            }
+
+            // Make sure the member has the role to remove.
+            const hasRole: boolean = guildMember.roles.some(x => x.id === guildRole.id);
+            if (!hasRole)
+            {
+                return;
+            }
+
+            await guildMember.removeRole(guildRole);
             Utility.deleteMessage(message);
         }
         catch (e)
