@@ -57,12 +57,12 @@ export class MessageHandler
         const cmd: string = result[1];
         const argString = result[2];
 
-        const args: string[] = (argString) ? argString.split(",") : [];
+        const args: string[] = (argString) ? argString.split(",").map(x => x.trim()) : [];
 
         // Handle command logic.
         if (cmd === "help" || cmd === "h")
         {
-            const helpCmd: string = (args[0]) ? args[0].trim() : undefined;
+            const helpCmd: string = (args[0]) ? args[0] : undefined;
             if (!helpCmd)
             {
                 message.channel.send("Available commands: " + this.getCommands(message));
@@ -88,27 +88,20 @@ export class MessageHandler
         {
             this.modules.some(x =>
             {
-                if (x.supportsCommand(cmd) && x.isValidCommandCall(cmd, args, message.author, message.guild))
+                if (x.supportsCommand(cmd))
                 {
-                    x.runCommand(message, cmd, args);
-                    return true;
+                    if (x.isValidCommandCall(cmd, args, message.author, message.guild))
+                    {
+                        x.runCommand(message, cmd, args);
+                        return true;
+                    }
+                    else
+                    {
+                        message.channel.send("Incorrect argument count or you do not have the appropriate role to use this command.");
+                    }
                 }
             });
         }
-
-        // Not sure how I feel about the auto deletes.
-        //
-        // const gm: Discord.GuildMember = message.guild.members.find(x => x.id === BotId);
-        // if (!gm)
-        // {
-        //     return console.error("Couldn't find bot guild member for server \"" + message.guild.name + "\"");
-        // }
-
-        // if (gm.hasPermission(Discord.Permissions.FLAGS.MANAGE_MESSAGES))
-        // {
-        //     message.delete()
-        //         .catch(console.error);
-        // }
     }
     
     /**
