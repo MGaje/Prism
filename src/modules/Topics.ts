@@ -190,7 +190,7 @@ export class TopicsModule extends BaseModule
             }
 
             // Create the text channel for the topic.
-            const topicChannel: Discord.GuildChannel = await message.guild.createChannel(topicName, 'text');
+            const topicChannel: Discord.GuildChannel = await message.guild.createChannel(topicNameNormalized, 'text');
 
             // todo: Remove the ridiculous 'any' cast when the typings are updated.
             (<any>topicChannel).setParent(discordCategory.id);
@@ -200,7 +200,7 @@ export class TopicsModule extends BaseModule
             topicChannel.overwritePermissions(everyoneRole.id, <any>{ 'SEND_MESSAGES': false, 'VIEW_CHANNEL': false });
 
             // Create topic role and adjust permissions so that they CAN read/send messages.
-            const topicRole: Discord.Role = await message.guild.createRole({ name: topicName, color: 'WHITE'});
+            const topicRole: Discord.Role = await message.guild.createRole({ name: topicNameNormalized, color: 'WHITE'});
             topicChannel.overwritePermissions(topicRole.id, <any>{'SEND_MESSAGES': true, 'VIEW_CHANNEL': true });
 
             message.channel.send("Topic added.");
@@ -244,6 +244,7 @@ export class TopicsModule extends BaseModule
             const guildMember: Discord.GuildMember = message.guild.members.find(x => x.id === message.author.id);
             if (!guildMember)
             {
+                console.log(`Guild member not found`);
                 return;
             }
 
@@ -251,6 +252,7 @@ export class TopicsModule extends BaseModule
             const guildRole: Discord.Role = message.guild.roles.find(x => x.name === topicNameNormalized);
             if (!guildRole)
             {
+                console.log(`Role not found`);
                 return;
             }
 
