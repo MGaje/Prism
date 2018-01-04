@@ -7,5 +7,6 @@ export const PrismCommanderRole: string = "Prism Commander";
 // Collection of data store keys. Is there a better way to handle this?
 export class DataStoreKeys
 {
+    public static Env: string = "env";
     public static IgnoredUsersList: string = "ignore-users";
 }
