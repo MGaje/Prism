@@ -1,4 +1,5 @@
 import * as Discord from "discord.js";
+import getEnv from "../env";
 
 import { DataStoreKeys } from "./constants";
 import { Config } from "./Config";
@@ -11,6 +12,7 @@ import { QuotesModule } from "../modules/Quotes";
 import { SillyModule } from "../modules/Silly";
 import { ManagementModule } from "../modules/Management";
 import { TopicsModule } from "../modules/Topics";
+import { EnvSettings } from "./classes/EnvSettings";
 
 /**
  * Main bot construct.
@@ -44,6 +46,12 @@ export class Prism
      */
     public async run(dbPath: string): Promise<void>
     {
+        console.log("--Setting up environment--");
+        this.ds.set(DataStoreKeys.Env, getEnv());
+
+        const es: any = this.ds.get(DataStoreKeys.Env);
+        console.log("ENV: " + es.dbHost);
+
         console.log("--Attempting to connect to db: " + dbPath + "--");
 
         try
