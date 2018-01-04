@@ -1,11 +1,15 @@
 import * as Sqlite from "sqlite3";
+import * as Pg from "pg";
+import * as Path from "path";
+
+import { Utility } from "./Utility";
 
 /**
  * A database wrapper that takes the sqlite methods and wraps them in promises.
  */
 export class Database
 {
-    public db: Sqlite.Database;
+    private db: any;
 
     /**
      * Default constructor.
@@ -13,16 +17,47 @@ export class Database
      */
     constructor()
     {
-        // Empty.
+        if (Utility.isProdEnv())
+        {
+            this.db = new Pg.Client({
+                host: "",
+                port: 5334,
+                user: "",
+                password: ""
+            });
+        }
     }
 
     /**
      * Connect to database file.
-     * @param {string} filename Filename of the database to connect to.
      * @returns {Promise<boolean>} A promise with connection state represented by a boolean.
      */
-    public connect(filename: string): Promise<boolean>
+    public connect(): Promise<boolean>
     {
+        //
+        // Production logic.
+        //
+        if (Utility.isProdEnv())
+        {
+            return new Promise((resolve, reject) =>
+            {
+                this.db.connect(err => {
+                    if (err)
+                    {
+                        reject(err);
+                    }
+                    else
+                    {
+                        resolve(true);
+                    }
+                });
+            });
+        }
+        
+        //
+        // Development logic.
+        //
+        const filename: string = Path.join((<any>global).appRoot, "..", "db", "quotes.db");
         return new Promise((resolve, reject) => 
         {
             this.db = new Sqlite.Database(filename, Sqlite.OPEN_READWRITE, err =>
@@ -53,6 +88,22 @@ export class Database
      */
     public all(sql: string, params: any): Promise<any[]>
     {
+        //
+        // Production logic.
+        //
+        if (Utility.isProdEnv())
+        {
+            return new Promise((resolve, reject) =>
+            {
+                this.db.query(sql, params)
+                    .then(result => resolve(result.rows))
+                    .catch(e => reject(e));
+            });
+        }
+        
+        //
+        // Development logic.
+        //
         return new Promise((resolve, reject) =>
         {
             if (!this.db)
@@ -80,6 +131,23 @@ export class Database
      */
     public run(sql: string, params: any): Promise<number>
     {
+        //
+        // Production logic.
+        //
+        if (Utility.isProdEnv())
+        {
+            sql += " RETURNING Id";
+            return new Promise((resolve, reject) =>
+            {
+                this.db.query(sql, params)
+                    .then(result => resolve(result.rows[0].Id))
+                    .catch(e => reject(e));
+            });
+        }
+        
+        //
+        // Development logic.
+        //
         return new Promise((resolve, reject) =>
         {
             if (!this.db)
@@ -111,6 +179,22 @@ export class Database
      */
     public get(sql: string, params: any): Promise<any>
     {
+        //
+        // Production logic.
+        //
+        if (Utility.isProdEnv())
+        {
+            return new Promise((resolve, reject) =>
+            {
+                this.db.query(sql, params)
+                    .then(result => resolve(result.rows[0]))
+                    .catch(e => reject(e));
+            });
+        }
+        
+        //
+        // Development logic.
+        //
         return new Promise((resolve, reject) =>
         {
             if (!this.db)

@@ -13,6 +13,7 @@
         "bufferutil": "^3.0.2",
         "discord.js": "git+https://github.com/hydrabolt/discord.js.git#11.3-dev",
         "mathjs": "^3.17.0",
+        "pg": "^7.4.0",
         "sqlite3": "^3.1.13",
         "uglifyjs-webpack-plugin": "^1.1.1",
         "uws": "^8.14.1"
@@ -21,8 +22,9 @@
         "@types/core-js": "^0.9.43",
         "@types/mathjs": "0.0.35",
         "@types/node": "^8.0.53",
+        "@types/pg": "^7.4.1",
         "@types/sqlite3": "^3.1.1",
-        "typescript": "^2.6.1",
+        "typescript": "^2.6.2",
         "webpack": "^3.8.1",
         "webpack-node-externals": "^1.6.0"
     }

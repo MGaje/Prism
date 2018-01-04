@@ -42,21 +42,17 @@ export class Prism
 
     /**
      * Run the bot.
-     * @param {string} dbPath Path of the database file.
      */
-    public async run(dbPath: string): Promise<void>
+    public async run(): Promise<void>
     {
         console.log("--Setting up environment--");
         this.ds.set(DataStoreKeys.Env, getEnv());
 
-        const es: any = this.ds.get(DataStoreKeys.Env);
-        console.log("ENV: " + es.dbHost);
-
-        console.log("--Attempting to connect to db: " + dbPath + "--");
+        console.log("--Attempting to connect to db: --");
 
         try
         {
-            await this.db.connect(dbPath);
+            await this.db.connect();
             console.log("--Connected to db--");
 
             console.log("--Registering modules--");
