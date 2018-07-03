@@ -7,6 +7,16 @@ import { BotId } from "./constants";
  */
 export class Utility
 {
+    static isDevEnv(): boolean
+    {
+        return process.env.NODE_ENV === "development";
+    }
+
+    static isProdEnv(): boolean
+    {
+        return process.env.NODE_ENV === "production";
+    }
+
     static fromUTCToLocalDate(utcDate: Date): Date
     {
         const offsetMs: number = new Date().getTimezoneOffset() * 60 * 1000;

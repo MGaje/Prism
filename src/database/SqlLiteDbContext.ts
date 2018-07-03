@@ -1,11 +1,14 @@
 import * as Sqlite from "sqlite3";
+import * as Path from "path";
+
+import { DatabaseContext } from "./DatabaseContext";
 
 /**
  * A database wrapper that takes the sqlite methods and wraps them in promises.
  */
-export class Database
+export class SqlLiteDbContext implements DatabaseContext
 {
-    public db: Sqlite.Database;
+    private db: any;
 
     /**
      * Default constructor.
@@ -18,11 +21,11 @@ export class Database
 
     /**
      * Connect to database file.
-     * @param {string} filename Filename of the database to connect to.
      * @returns {Promise<boolean>} A promise with connection state represented by a boolean.
      */
-    public connect(filename: string): Promise<boolean>
+    public connect(): Promise<boolean>
     {
+        const filename: string = Path.join((<any>global).appRoot, "..", "db", "quotes.db");
         return new Promise((resolve, reject) => 
         {
             this.db = new Sqlite.Database(filename, Sqlite.OPEN_READWRITE, err =>

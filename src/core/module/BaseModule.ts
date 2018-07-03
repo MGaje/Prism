@@ -1,7 +1,7 @@
 import * as Discord from "discord.js";
 
 import { Module } from "./interfaces/Module";
-import { Database } from "../Database";
+import { DatabaseContext } from "../../database/DatabaseContext";
 import { DataStore } from "../DataStore";
 import { Command } from "./Command";
 
@@ -11,7 +11,7 @@ import { Command } from "./Command";
 export abstract class BaseModule implements Module
 {
     public cmds: Command[];
-    public db: Database;
+    public db: DatabaseContext;
     public ds: DataStore;
 
     /**
@@ -19,7 +19,7 @@ export abstract class BaseModule implements Module
      * @param {Database} db Database context.
      * @param {string[]} roles The roles required to perform commands in this module.
      */
-    constructor(db: Database, dataStore: DataStore)
+    constructor(db: DatabaseContext, dataStore: DataStore)
     {
         this.db = db;
         this.ds = dataStore;

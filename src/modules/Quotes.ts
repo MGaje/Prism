@@ -6,7 +6,6 @@ import { Command } from "../core/module/Command";
 import { Argument } from "../core/module/Argument";
 
 import { BotId } from "../core/constants";
-import { Database } from "../core/Database";
 
 /**
  * Module for quote management.
