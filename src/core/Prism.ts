@@ -3,16 +3,18 @@ import getEnv from "../env";
 
 import { DataStoreKeys } from "./constants";
 import { Config } from "./Config";
-import { Database } from "./Database";
+import { DatabaseContext } from "../database/DatabaseContext";
+import { PostgreSqlDbContext } from '../database/PostgreSqlDbContext';
+import { SqlLiteDbContext } from "../database/SqlLiteDbContext";
 import { MessageHandler } from "./MessageHandler";
 import { DataStore } from "./DataStore";
+import { Utility } from "./Utility";
 
 import { Module } from "./module/interfaces/Module";
 import { QuotesModule } from "../modules/Quotes";
 import { SillyModule } from "../modules/Silly";
 import { ManagementModule } from "../modules/Management";
 import { TopicsModule } from "../modules/Topics";
-import { EnvSettings } from "./classes/EnvSettings";
 
 /**
  * Main bot construct.
@@ -22,7 +24,7 @@ export class Prism
     public modules: Module[];
     public config: Config;
     public botClient: Discord.Client;
-    public db: Database;
+    public db: DatabaseContext;
     public ds: DataStore;
     public mh: MessageHandler;
     public stdin: NodeJS.Socket;
@@ -36,8 +38,16 @@ export class Prism
         this.modules = [];
         this.config = require("../../config.json");
         this.botClient = new Discord.Client();
-        this.db = new Database();
         this.ds = new DataStore();
+
+        if (Utility.isProdEnv())
+        {
+            this.db = new PostgreSqlDbContext();
+        }
+        else
+        {
+            this.db = new SqlLiteDbContext();
+        }
     }
 
     /**
